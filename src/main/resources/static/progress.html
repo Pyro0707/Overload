@@ -126,6 +126,7 @@
         let chart = null;
         let historyData = [];
         let currentChartType = 'weight';
+        const preferredUnit = localStorage.getItem('preferredUnit') || 'kg';
 
         (async () => {
             try {
@@ -188,20 +189,33 @@
 
             const labels = historyData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
 
-            let data, label, color;
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+            let data, label, primaryColor, strokeColor;
             if (currentChartType === 'weight') {
                 data = historyData.map(d => d.maxWeight);
-                label = 'Max Weight (kg)';
-                color = '#000000';
+                label = 'Max Weight (' + preferredUnit + ')';
+                primaryColor = isDark ? '#14b8a6' : '#0d9488'; // Emerald Teal
             } else if (currentChartType === 'volume') {
                 data = historyData.map(d => d.totalVolume);
-                label = 'Total Volume (kg)';
-                color = '#0d9488';
+                label = 'Total Volume (' + preferredUnit + ')';
+                primaryColor = isDark ? '#8b5cf6' : '#6366f1'; // Electric Violet
             } else {
                 data = historyData.map(d => d.maxReps);
                 label = 'Best Reps';
-                color = '#eab308';
+                primaryColor = isDark ? '#fbbf24' : '#d97706'; // Warm Amber Gold
             }
+
+            // Create smooth vertical gradient fill
+            const canvasCtx = ctx.getContext('2d');
+            const gradient = canvasCtx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, primaryColor + (isDark ? '40' : '30')); // 25-30% opacity at top
+            gradient.addColorStop(1, primaryColor + '00'); // Fully transparent at bottom
+
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : '#eeeeee';
+            const tickColor = isDark ? '#a1a1aa' : '#848484';
+            const tooltipBg = isDark ? '#18181b' : '#1b1b1b';
+            const pointBorder = isDark ? '#121215' : '#ffffff';
 
             chart = new Chart(ctx, {
                 type: 'line',
@@ -210,38 +224,49 @@
                     datasets: [{
                         label,
                         data,
-                        borderColor: color,
-                        backgroundColor: currentChartType === 'weight' ? 'rgba(0,0,0,0.04)' : currentChartType === 'volume' ? 'rgba(13,148,136,0.06)' : 'rgba(234,179,8,0.06)',
+                        borderColor: primaryColor,
+                        borderWidth: 3,
+                        backgroundColor: gradient,
                         fill: true,
                         tension: 0.35,
-                        pointBackgroundColor: color,
-                        pointBorderColor: '#fff',
+                        pointBackgroundColor: primaryColor,
+                        pointBorderColor: pointBorder,
                         pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: primaryColor,
+                        pointHoverBorderColor: pointBorder,
+                        pointHoverBorderWidth: 3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: '#1b1b1b',
-                            titleFont: { family: 'Plus Jakarta Sans', weight: 'bold' },
-                            bodyFont: { family: 'Hanken Grotesk' },
+                            backgroundColor: tooltipBg,
+                            titleFont: { family: 'Plus Jakarta Sans', weight: 'bold', size: 12 },
+                            bodyFont: { family: 'Hanken Grotesk', size: 13, weight: 'bold' },
                             padding: 12,
-                            cornerRadius: 8
+                            cornerRadius: 10,
+                            displayColors: false,
+                            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                            borderWidth: 1
                         }
                     },
                     scales: {
                         x: {
                             grid: { display: false },
-                            ticks: { font: { family: 'Hanken Grotesk', size: 12 }, color: '#848484' }
+                            ticks: { font: { family: 'Hanken Grotesk', size: 11, weight: '600' }, color: tickColor }
                         },
                         y: {
-                            grid: { color: '#eeeeee' },
-                            ticks: { font: { family: 'Hanken Grotesk', size: 12 }, color: '#848484' },
+                            grid: { color: gridColor },
+                            ticks: { font: { family: 'Hanken Grotesk', size: 11, weight: '600' }, color: tickColor },
                             beginAtZero: false
                         }
                     }
