@@ -778,25 +778,30 @@
 
 
         function detectPlateau(history) {
-            if (!history || history.length < 3) return { plateau: false };
+            if (!history || history.length < 4) return { plateau: false };
 
             const sessions = history.map(h => {
-                const est1Rms = h.sets.map(s => s.weight * (1 + s.reps / 30));
+                const est1Rms = h.sets.map(s => (s.weight || 0) * (1 + (s.reps || 0) / 30));
                 const max1Rm = est1Rms.length > 0 ? Math.max(...est1Rms) : 0;
                 return { max1Rm };
             }).filter(s => s.max1Rm > 0);
 
-            if (sessions.length < 3) return { plateau: false };
+            if (sessions.length < 4) return { plateau: false };
 
             const allTimeBest = Math.max(...sessions.map(s => s.max1Rm));
-            const normalSessions = sessions.filter(s => s.max1Rm >= allTimeBest * 0.92);
+            // Filter out deliberate deload sessions (below 90% of all-time best)
+            const normalSessions = sessions.filter(s => s.max1Rm >= allTimeBest * 0.90);
 
-            if (normalSessions.length < 3) return { plateau: false };
+            if (normalSessions.length < 4) return { plateau: false };
 
             const last3 = normalSessions.slice(-3);
             const [s1, s2, s3] = last3;
 
-            if (s3.max1Rm <= s2.max1Rm && s2.max1Rm <= s1.max1Rm) {
+            // If the latest session showed improvement over the previous, user is progressing
+            if (s3.max1Rm > s2.max1Rm) return { plateau: false };
+
+            // True plateau: performance has dropped or stagnated for 3 consecutive normal sessions
+            if (s3.max1Rm < s1.max1Rm * 0.99 && s2.max1Rm < s1.max1Rm * 0.99) {
                 return { plateau: true };
             }
             return { plateau: false };
