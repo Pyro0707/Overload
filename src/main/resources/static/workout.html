@@ -40,6 +40,14 @@
                         <input class="w-full bg-[#f3f3f3] border border-transparent rounded-xl py-3.5 px-4 text-sm text-black placeholder:text-[#848484] focus:ring-2 focus:ring-black focus:bg-white transition-all" id="session-notes" placeholder="e.g. High energy, targeting chest PRs today">
                     </div>
 
+                    <div class="flex items-center gap-3 bg-[#f9f9f9] border border-[#e2e2e2] rounded-xl p-4">
+                        <input type="checkbox" id="deload-checkbox" class="w-4 h-4 text-black border-[#c6c6c6] rounded focus:ring-black cursor-pointer">
+                        <div class="flex flex-col">
+                            <label for="deload-checkbox" class="text-sm font-bold text-black cursor-pointer">Deload Workout</label>
+                            <span class="text-xs text-[#5d5f5d]">Reduces all pre-filled exercise target weights by 10% for this session.</span>
+                        </div>
+                    </div>
+
                     <div class="pt-2">
                         <button onclick="startWorkout()" class="w-full bg-black text-white font-semibold text-base py-4 rounded-full hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2 shadow-md">
                             <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
@@ -74,6 +82,11 @@
                         </button>
                     </div>
                 </header>
+
+                <div id="deload-banner" class="hidden mx-2 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 text-xs font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">info</span>
+                    <span>Deload Workout Active — Target weights are automatically reduced by 10%.</span>
+                </div>
 
                 <!-- Exercise List -->
                 <div id="exercise-list" class="flex flex-col gap-6"></div>
@@ -262,6 +275,7 @@
             const routine = document.getElementById('routine-select').value || null;
             const day = routine ? document.getElementById('day-select').value : null;
             const notes = document.getElementById('session-notes').value.trim() || null;
+            const isDeload = document.getElementById('deload-checkbox').checked;
 
             try {
                 const session = await API.post('/api/sessions', {
@@ -272,7 +286,7 @@
                 });
                 sessionId = session.id;
                 const startTime = Date.now();
-                localStorage.setItem('activeSession', JSON.stringify({ sessionId, routine, day, startTime }));
+                localStorage.setItem('activeSession', JSON.stringify({ sessionId, routine, day, startTime, isDeload }));
                 await loadActiveSession();
                 startLiveTimer(startTime);
             } catch (err) {
@@ -284,6 +298,13 @@
             const saved = JSON.parse(localStorage.getItem('activeSession') || '{}');
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('active-screen').classList.remove('hidden');
+
+            const deloadBanner = document.getElementById('deload-banner');
+            if (saved.isDeload) {
+                deloadBanner.classList.remove('hidden');
+            } else {
+                deloadBanner.classList.add('hidden');
+            }
 
             document.getElementById('workout-title').textContent = saved.routine ? `${saved.routine} — ${saved.day}` : 'Freestyle Session';
             document.getElementById('workout-subtitle').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
@@ -299,8 +320,12 @@
                         const sets = [];
                         for (let i = 0; i < targetSets; i++) {
                             const lastSet = lastSession && lastSession.sets[i] ? lastSession.sets[i] : null;
+                            let weightVal = '';
+                            if (lastSet && lastSet.weight !== '') {
+                                weightVal = saved.isDeload ? Math.round(lastSet.weight * 0.9 * 10) / 10 : lastSet.weight;
+                            }
                             sets.push({
-                                weight: lastSet ? lastSet.weight : '',
+                                weight: weightVal,
                                 reps: lastSet ? lastSet.reps : '',
                                 rpe: null,
                                 logged: false
@@ -314,7 +339,8 @@
                             muscleGroup: p.muscleGroup || 'General',
                             lastSession: lastSession,
                             best1Rm: best1RmData.best1Rm || 0,
-                            sets
+                            sets,
+                            plateau: detectPlateau(history).plateau
                         });
                     }
                 } catch (err) {
@@ -382,6 +408,11 @@
                         <div>
                             <span class="px-2.5 py-0.5 rounded-md bg-[#f3f3f3] text-[#5d5f5d] text-[11px] font-bold uppercase tracking-wider">${ex.muscleGroup}</span>
                             <h3 class="font-['Plus_Jakarta_Sans'] text-xl font-bold text-black mt-1">${ex.exerciseName}</h3>
+                            ${ex.plateau ? `
+                            <div class="mt-2 flex items-center gap-2 p-2 rounded-lg bg-[#dc2626]/10 border border-[#dc2626]/20 text-[#dc2626] text-[11px] font-bold cursor-pointer hover:bg-[#dc2626]/15 active:scale-[0.98] transition-all w-fit" onclick="applyExerciseDeload(${exIdx})">
+                                <span class="material-symbols-outlined text-[15px] animate-pulse">warning</span>
+                                <span>Plateau Detected! Tap to deload targets by 10%</span>
+                            </div>` : ''}
                         </div>
                         <div class="flex items-center gap-2">
                             <button class="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#848484] hover:bg-red-50 hover:text-red-600 flex items-center justify-center transition-colors" onclick="removeExercise(${exIdx})" title="Remove Exercise">
@@ -653,17 +684,31 @@
 
             // Fetch best 1RM for this exercise
             const best1RmData = await API.get(`/api/exercises/${found.id}/best-1rm`).catch(() => ({ best1Rm: 0 }));
+            const saved = JSON.parse(localStorage.getItem('activeSession') || '{}');
+            const isDeload = saved.isDeload || false;
+
+            const sets = [];
+            for (let i = 0; i < 3; i++) {
+                let weightVal = '';
+                if (lastSession && lastSession.maxWeight !== '') {
+                    weightVal = isDeload ? Math.round(lastSession.maxWeight * 0.9 * 10) / 10 : lastSession.maxWeight;
+                }
+                sets.push({
+                    weight: weightVal,
+                    reps: lastSession ? lastSession.maxReps : '',
+                    rpe: null,
+                    logged: false
+                });
+            }
+
             workoutExercises.push({
                 exerciseId: found.id,
                 exerciseName: found.name,
                 muscleGroup: found.muscleGroup || 'General',
                 lastSession: lastSession,
                 best1Rm: best1RmData.best1Rm || 0,
-                sets: [
-                    { weight: lastSession ? lastSession.maxWeight : '', reps: lastSession ? lastSession.maxReps : '', rpe: null, logged: false },
-                    { weight: lastSession ? lastSession.maxWeight : '', reps: lastSession ? lastSession.maxReps : '', rpe: null, logged: false },
-                    { weight: lastSession ? lastSession.maxWeight : '', reps: lastSession ? lastSession.maxReps : '', rpe: null, logged: false }
-                ]
+                sets: sets,
+                plateau: detectPlateau(history).plateau
             });
             closeModal('add-exercise-modal');
             renderWorkout();
@@ -725,6 +770,44 @@
             }
         }
 
+
+        function detectPlateau(history) {
+            if (!history || history.length < 3) return { plateau: false };
+
+            const sessions = history.map(h => {
+                const est1Rms = h.sets.map(s => s.weight * (1 + s.reps / 30));
+                const max1Rm = est1Rms.length > 0 ? Math.max(...est1Rms) : 0;
+                return { max1Rm };
+            }).filter(s => s.max1Rm > 0);
+
+            if (sessions.length < 3) return { plateau: false };
+
+            const allTimeBest = Math.max(...sessions.map(s => s.max1Rm));
+            const normalSessions = sessions.filter(s => s.max1Rm >= allTimeBest * 0.92);
+
+            if (normalSessions.length < 3) return { plateau: false };
+
+            const last3 = normalSessions.slice(-3);
+            const [s1, s2, s3] = last3;
+
+            if (s3.max1Rm <= s2.max1Rm && s2.max1Rm <= s1.max1Rm) {
+                return { plateau: true };
+            }
+            return { plateau: false };
+        }
+
+        function applyExerciseDeload(exIdx) {
+            if (!confirm('Apply a 10% deload to this exercise? This will reduce all target weights for this session by 10%.')) return;
+            const ex = workoutExercises[exIdx];
+            ex.sets.forEach(set => {
+                if (set.weight !== '' && !set.logged) {
+                    set.weight = Math.round(set.weight * 0.9 * 10) / 10;
+                }
+            });
+            ex.plateau = false;
+            showToast('Applied 10% deload to targets!', 'success');
+            renderWorkout();
+        }
 
         function applyRecommendation(exIdx, recW, recR) {
             const ex = workoutExercises[exIdx];
