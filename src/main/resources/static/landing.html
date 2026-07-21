@@ -442,14 +442,9 @@
             <p class="text-secondary font-normal text-base leading-relaxed">
                 Overload scans your history in real-time. The moment you beat a personal record, we celebrate it. No more manual searching through old notebooks to see if you've progressed.
             </p>
-            <div class="flex items-center gap-4 pt-2">
-                <div class="flex -space-x-2 overflow-hidden">
-                    <div class="inline-block h-9 w-9 rounded-full ring-2 ring-white bg-[#303030] text-white text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 hover:z-10">JD</div>
-                    <div class="inline-block h-9 w-9 rounded-full ring-2 ring-white bg-[#5d5f5d] text-white text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 hover:z-10">MK</div>
-                    <div class="inline-block h-9 w-9 rounded-full ring-2 ring-white bg-black text-white text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 hover:z-10">AL</div>
-                    <div class="inline-block h-9 w-9 rounded-full ring-2 ring-white bg-[#e2e2e2] text-black text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 hover:z-10">+</div>
-                </div>
-                <span class="text-sm font-semibold text-secondary">Join 12,000+ athletes chasing PRs.</span>
+            <div class="flex items-center gap-2.5 pt-2 text-[#0d9488]">
+                <span class="material-symbols-outlined text-[20px]">verified_user</span>
+                <span class="text-sm font-semibold text-secondary">Designed for 100% private, self-hosted data ownership.</span>
             </div>
         </div>
     </section>
@@ -963,11 +958,11 @@
     const livePrText = document.getElementById('live-pr-text');
     if (livePrText && !isReducedMotion) {
         const prEvents = [
-            "New PR — 105kg × 8 Bench Press",
-            "JD unlocked 140kg × 3 Squat PR",
-            "MK smashed 85kg × 6 Overhead Press",
-            "AL hit 200kg × 1 Deadlift PR",
-            "SK achieved 115kg × 5 Barbell Row PR"
+            "Bench Press PR — 105kg × 8 reps",
+            "Squat PR — 140kg × 3 reps",
+            "Overhead Press PR — 85kg × 6 reps",
+            "Deadlift PR — 200kg × 1 rep",
+            "Barbell Row PR — 115kg × 5 reps"
         ];
         let prIdx = 0;
         setInterval(() => {
