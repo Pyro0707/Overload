@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout — Overload</title>
+    <meta name="description" content="Log your workout sets in real-time with auto-fill, rest timer, and PR detection.">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
+</head>
+<body class="bg-[#f9f9f9] text-[#1b1b1b] min-h-screen font-['Hanken_Grotesk'] overflow-x-hidden selection:bg-black selection:text-white">
+    <!-- Main Content Canvas -->
+    <main class="w-full md:w-[calc(100%-16rem)] md:ml-64 p-5 md:p-10 lg:p-12 min-h-screen pb-32 flex justify-center" id="workout-main">
+        <div class="w-full max-w-3xl flex flex-col gap-8">
+            <!-- Setup Screen (shown before session starts) -->
+            <div id="setup-screen" class="flex flex-col gap-6 animate-fade-in-up">
+                <header class="flex flex-col gap-1">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-[#0d9488]">Live Training</span>
+                    <h1 class="font-['Plus_Jakarta_Sans'] text-3xl md:text-4xl font-extrabold text-black tracking-tight">Start Workout</h1>
+                    <p class="text-sm text-[#5d5f5d]">Select a planned split or jump right into a freestyle session.</p>
+                </header>
+
+                <div class="bg-white rounded-2xl p-8 border border-[#e2e2e2] shadow-sm flex flex-col gap-6">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-[#5d5f5d]">Routine (Optional)</label>
+                        <select class="w-full bg-[#f3f3f3] border border-transparent rounded-xl py-3.5 px-4 text-sm font-semibold text-black focus:ring-2 focus:ring-black focus:bg-white cursor-pointer transition-all" id="routine-select" onchange="loadDays()">
+                            <option value="">— Freestyle Workout —</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2" id="day-group" style="display:none;">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-[#5d5f5d]">Training Day</label>
+                        <select class="w-full bg-[#f3f3f3] border border-transparent rounded-xl py-3.5 px-4 text-sm font-semibold text-black focus:ring-2 focus:ring-black focus:bg-white cursor-pointer transition-all" id="day-select"></select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-[#5d5f5d]">Session Notes (Optional)</label>
+                        <input class="w-full bg-[#f3f3f3] border border-transparent rounded-xl py-3.5 px-4 text-sm text-black placeholder:text-[#848484] focus:ring-2 focus:ring-black focus:bg-white transition-all" id="session-notes" placeholder="e.g. High energy, targeting chest PRs today">
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="startWorkout()" class="w-full bg-black text-white font-semibold text-base py-4 rounded-full hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2 shadow-md">
+                            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                            <span>Begin Training Session</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Workout Screen -->
+            <div id="active-screen" class="hidden flex flex-col gap-6 animate-fade-in-up">
+                <!-- Sticky Session Header -->
+                <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-2xl p-6 border border-[#e2e2e2] shadow-md sticky top-4 md:top-6 z-30">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-[#dc2626] animate-pulse"></div>
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-widest text-[#848484]">Active Session</span>
+                            <h1 class="font-['Plus_Jakarta_Sans'] text-xl md:text-2xl font-extrabold text-black" id="workout-title">Workout</h1>
+                            <p class="text-xs font-medium text-[#5d5f5d]" id="workout-subtitle"></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 self-end sm:self-center">
+                        <button onclick="toggleCoachMode()" id="coach-mode-toggle" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border shadow-sm bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100" title="Toggle Progression Coach Mode">
+                            <span class="material-symbols-outlined text-[16px]">psychology</span> Coach: <span id="coach-mode-status">ON</span>
+                        </button>
+                        <div class="flex items-center gap-2 bg-[#f3f3f3] px-4 py-2 rounded-full border border-[#eeeeee]">
+                            <span class="material-symbols-outlined text-[#0d9488] text-[18px]">timer</span>
+                            <span class="font-mono font-bold text-sm text-black" id="live-session-timer">00:00</span>
+                        </div>
+                        <button onclick="endWorkout()" class="bg-[#dc2626]/10 text-[#dc2626] hover:bg-[#dc2626] hover:text-white px-4 py-2 rounded-full text-xs font-bold transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[16px]">stop</span> End
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Exercise List -->
+                <div id="exercise-list" class="flex flex-col gap-6"></div>
+
+                <!-- Floating Toolbar Actions -->
+                <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
+                    <button onclick="showAddExercise()" class="bg-black text-white px-6 py-3 rounded-full text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-opacity shadow-sm">
+                        <span class="material-symbols-outlined text-[18px]">add</span> Add Exercise
+                    </button>
+                    <button onclick="showWarmupCalc()" class="bg-white text-black border border-[#e2e2e2] px-5 py-3 rounded-full text-xs font-bold flex items-center gap-1.5 hover:border-black transition-all shadow-sm">
+                        <span class="material-symbols-outlined text-[18px] text-[#ea580c]">local_fire_department</span> Warm-up Calc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rest Timer Bar -->
+    <div class="rest-timer shadow-2xl border-t border-[#e2e2e2] bg-white/95 backdrop-blur-md" id="rest-timer">
+        <div class="flex items-center gap-2">
+            <button class="bg-[#f3f3f3] text-[#5d5f5d] hover:text-black px-4 py-2 rounded-full text-xs font-bold transition-colors" onclick="skipTimer()">Skip Rest</button>
+            <div class="hidden sm:flex items-center gap-1 bg-[#f3f3f3] p-1 rounded-full border border-[#eeeeee]">
+                <button class="px-2.5 py-1 rounded-full text-[11px] font-bold text-[#5d5f5d] hover:text-black hover:bg-white transition-all" onclick="setTimerPreset(60)">60s</button>
+                <button class="px-2.5 py-1 rounded-full text-[11px] font-bold text-[#5d5f5d] hover:text-black hover:bg-white transition-all" onclick="setTimerPreset(90)">90s</button>
+                <button class="px-2.5 py-1 rounded-full text-[11px] font-bold text-[#5d5f5d] hover:text-black hover:bg-white transition-all" onclick="setTimerPreset(120)">2m</button>
+                <button class="px-2.5 py-1 rounded-full text-[11px] font-bold text-[#5d5f5d] hover:text-black hover:bg-white transition-all" onclick="setTimerPreset(180)">3m</button>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[#0d9488] text-2xl animate-pulse">timer</span>
+            <div class="font-mono font-black text-3xl text-black" id="timer-display">01:30</div>
+        </div>
+        <button class="bg-[#f3f3f3] text-black hover:bg-black hover:text-white px-4 py-2 rounded-full text-xs font-bold transition-colors" onclick="addTime(30)">+30s</button>
+        <div class="rest-timer-bar bg-black" id="timer-bar"></div>
+    </div>
+
+    <!-- Add Exercise Modal (Hevy-style Picker) -->
+    <div class="modal-overlay" id="add-exercise-modal">
+        <div class="modal" style="max-width: 480px; padding: 0; overflow: hidden;">
+            <div style="padding: 24px 24px 0;">
+                <div class="modal-header" style="margin-bottom: 16px;">
+                    <div class="modal-title">Add Exercise</div>
+                    <button class="modal-close" type="button" onclick="closeModal('add-exercise-modal')">&times;</button>
+                </div>
+                <!-- Search Bar -->
+                <div style="position: relative; margin-bottom: 12px;">
+                    <span class="material-symbols-outlined" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text-muted);">search</span>
+                    <input type="text" id="wo-exercise-search" placeholder="Search exercises..." oninput="filterWoExerciseList()"
+                        class="w-full bg-[#f3f3f3] border border-transparent rounded-xl py-3 pl-10 pr-4 text-sm text-[#1b1b1b] placeholder:text-[#848484] focus:ring-2 focus:ring-black focus:bg-white transition-all">
+                </div>
+                <!-- Muscle Group Filter Chips -->
+                <div id="wo-muscle-chips" class="flex gap-2 overflow-x-auto pb-3 hide-scrollbar" style="margin: 0 -24px; padding-left: 24px; padding-right: 24px;"></div>
+            </div>
+            <!-- Exercise List -->
+            <div id="wo-exercise-picker-list" style="max-height: 320px; overflow-y: auto; padding: 0 24px;"></div>
+            <!-- Footer -->
+            <div style="padding: 16px 24px; border-top: 1px solid var(--border);">
+                <button type="button" class="w-full bg-black text-white font-semibold text-sm py-3.5 rounded-full hover:opacity-90 transition-all shadow-sm" onclick="addExerciseToWorkout()">Add Exercise</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warm-up Calculator Modal -->
+    <div class="modal-overlay" id="warmup-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#ea580c] text-[24px]">local_fire_department</span>
+                    <span>Warm-up Calculator</span>
+                </div>
+                <button class="modal-close" type="button" onclick="closeModal('warmup-modal')">&times;</button>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-[#5d5f5d]">Working Weight (kg)</label>
+                    <input class="w-full bg-[#f3f3f3] border border-transparent rounded-xl py-3 px-4 text-sm text-black focus:ring-2 focus:ring-black focus:bg-white transition-all" id="warmup-weight" type="number" step="0.5" placeholder="e.g. 100">
+                </div>
+                <button type="button" class="w-full bg-black text-white font-semibold text-sm py-3.5 rounded-full hover:opacity-90 transition-all shadow-sm" onclick="calculateWarmup()">Calculate Warm-up Sets</button>
+                <div id="warmup-result" class="flex flex-col gap-2 mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+        requireAuth();
+
+        let sessionId = null;
+        let allExercises = [];
+        let workoutExercises = []; // Each entry: { exerciseId, exerciseName, muscleGroup, lastSession, best1Rm, sets: [{ weight, reps, rpe, logged, setId }] }
+        let timerInterval = null;
+        let audioCtx = null; // reused across beeps — browsers cap concurrent AudioContexts
+        let timerSeconds = 0;
+        let timerTotal = 90;
+        let sessionTimerInterval = null;
+        let sessionSeconds = 0;
+        let coachMode = true;
+
+        function toggleCoachMode() {
+            coachMode = !coachMode;
+            const btn = document.getElementById('coach-mode-toggle');
+            const status = document.getElementById('coach-mode-status');
+            if (!btn || !status) return;
+            if (coachMode) {
+                btn.className = "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border shadow-sm bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100";
+                status.textContent = "ON";
+                showToast("⚡ Progression Coach Activated", "success");
+            } else {
+                btn.className = "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border shadow-sm bg-[#f3f3f3] text-[#848484] border-[#e2e2e2] hover:text-black";
+                status.textContent = "OFF";
+                showToast("🧘 Minimal Tracking Mode (Coach Hidden)", "info");
+            }
+            renderWorkout();
+        }
+
+        // ── RPE Scale Constants ──
+        const RPE_VALUES = [4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+        const RPE_DESCRIPTORS = {
+            4: '@4.0 — Warmup / Light',
+            4.5: '@4.5 — Light Effort',
+            5: '@5.0 — Easy (5+ RIR)',
+            5.5: '@5.5 — Moderate-Light',
+            6: '@6.0 — Fast bar speed (4 RIR)',
+            6.5: '@6.5 — Moderate (3-4 RIR)',
+            7: '@7.0 — Solid effort (3 RIR)',
+            7.5: '@7.5 — Heavy, crisp (2-3 RIR)',
+            8: '@8.0 — 2 reps in reserve',
+            8.5: '@8.5 — 1-2 reps in reserve',
+            9: '@9.0 — 1 rep in reserve',
+            9.5: '@9.5 — Maybe 1 more',
+            10: '@10.0 — Max effort (0 RIR)'
+        };
+
+        const saved = localStorage.getItem('activeSession');
+        if (saved) {
+            const s = JSON.parse(saved);
+            sessionId = s.sessionId;
+            loadActiveSession();
+        }
+
+        (async () => {
+            allExercises = await API.get('/api/exercises');
+            const routines = await API.get('/api/routines');
+            const select = document.getElementById('routine-select');
+            routines.forEach(r => {
+                select.innerHTML += `<option value="${r}">${r}</option>`;
+            });
+        })();
+
+        async function loadDays() {
+            const routine = document.getElementById('routine-select').value;
+            const dayGroup = document.getElementById('day-group');
+            if (!routine) { dayGroup.style.display = 'none'; return; }
+
+            dayGroup.style.display = 'block';
+            const days = await API.get(`/api/routines/${encodeURIComponent(routine)}`);
+            const select = document.getElementById('day-select');
+            select.innerHTML = Object.keys(days).map(d => `<option value="${d}">${d}</option>`).join('');
+        }
+
+        function startLiveTimer(startTime) {
+            if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+            if (!startTime) {
+                const saved = JSON.parse(localStorage.getItem('activeSession') || '{}');
+                startTime = saved.startTime;
+                if (!startTime) {
+                    startTime = Date.now();
+                    saved.startTime = startTime;
+                    localStorage.setItem('activeSession', JSON.stringify(saved));
+                }
+            }
+            const timerEl = document.getElementById('live-session-timer');
+            const update = () => {
+                sessionSeconds = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
+                const m = Math.floor(sessionSeconds / 60).toString().padStart(2, '0');
+                const s = (sessionSeconds % 60).toString().padStart(2, '0');
+                if (timerEl) timerEl.textContent = `${m}:${s}`;
+            };
+            update();
+            sessionTimerInterval = setInterval(update, 1000);
+        }
+
+        async function startWorkout() {
+            const routine = document.getElementById('routine-select').value || null;
+            const day = routine ? document.getElementById('day-select').value : null;
+            const notes = document.getElementById('session-notes').value.trim() || null;
+
+            try {
+                const session = await API.post('/api/sessions', {
+                    date: new Date().toISOString().split('T')[0],
+                    routineName: routine,
+                    dayOfWeek: day,
+                    notes: notes
+                });
+                sessionId = session.id;
+                const startTime = Date.now();
+                localStorage.setItem('activeSession', JSON.stringify({ sessionId, routine, day, startTime }));
+                await loadActiveSession();
+                startLiveTimer(startTime);
+            } catch (err) {
+                showToast(err.message || 'Failed to start workout', 'error');
+            }
+        }
+
+        async function loadActiveSession() {
+            const saved = JSON.parse(localStorage.getItem('activeSession') || '{}');
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('active-screen').classList.remove('hidden');
+
+            document.getElementById('workout-title').textContent = saved.routine ? `${saved.routine} — ${saved.day}` : 'Freestyle Session';
+            document.getElementById('workout-subtitle').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+            if (workoutExercises.length === 0 && saved.routine && saved.day) {
+                try {
+                    const days = await API.get(`/api/routines/${encodeURIComponent(saved.routine)}`);
+                    const planned = days[saved.day] || [];
+                    for (const p of planned) {
+                        const history = await API.get(`/api/exercises/${p.exerciseId}/history`).catch(() => []);
+                        const lastSession = history.length > 0 ? history[history.length - 1] : null;
+                        const targetSets = p.targetSets || 4;
+                        const sets = [];
+                        for (let i = 0; i < targetSets; i++) {
+                            const lastSet = lastSession && lastSession.sets[i] ? lastSession.sets[i] : null;
+                            sets.push({
+                                weight: lastSet ? lastSet.weight : '',
+                                reps: lastSet ? lastSet.reps : '',
+                                rpe: null,
+                                logged: false
+                            });
+                        }
+                        // Fetch best 1RM for this exercise
+                        const best1RmData = await API.get(`/api/exercises/${p.exerciseId}/best-1rm`).catch(() => ({ best1Rm: 0 }));
+                        workoutExercises.push({
+                            exerciseId: p.exerciseId,
+                            exerciseName: p.exerciseName,
+                            muscleGroup: p.muscleGroup || 'General',
+                            lastSession: lastSession,
+                            best1Rm: best1RmData.best1Rm || 0,
+                            sets
+                        });
+                    }
+                } catch (err) {
+                    console.error('Failed to load planned exercises:', err);
+                }
+            }
+            renderWorkout();
+            startLiveTimer();
+        }
+
+        function renderWorkout() {
+            const container = document.getElementById('exercise-list');
+            if (workoutExercises.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-10 text-center border border-[#e2e2e2] flex flex-col items-center gap-3">
+                        <span class="material-symbols-outlined text-4xl text-[#c6c6c6]">fitness_center</span>
+                        <h4 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-black">No exercises in this session</h4>
+                        <p class="text-sm text-[#5d5f5d]">Add an exercise below to start recording sets, weights, and reps.</p>
+                        <button onclick="showAddExercise()" class="mt-2 bg-black text-white px-6 py-2.5 rounded-full text-xs font-bold">+ Add Exercise</button>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = workoutExercises.map((ex, exIdx) => {
+                const loggedCount = ex.sets.filter(s => s.logged).length;
+                const totalSets = ex.sets.length;
+                const progressPct = totalSets > 0 ? Math.round((loggedCount / totalSets) * 100) : 0;
+
+                let coachBanner = '';
+                if (coachMode && ex.lastSession && ex.lastSession.maxWeight > 0) {
+                    const lastW = ex.lastSession.maxWeight;
+                    const lastR = ex.lastSession.maxReps;
+                    const recW = lastR >= 8 ? parseFloat((lastW + 5.0).toFixed(1)) : lastW;
+                    const bestEst = ex.best1Rm || (lastW * (1 + lastR / 30));
+                    const recR = lastR >= 8 ? Math.max(1, Math.ceil((bestEst / recW - 1) * 30)) : lastR + 1;
+                    coachBanner = `
+                    <div class="mx-4 mt-1 p-3.5 rounded-xl bg-gradient-to-r from-teal-500/10 via-blue-500/10 to-transparent border border-teal-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-600 flex-shrink-0">
+                                <span class="material-symbols-outlined text-[18px]">psychology</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-['Plus_Jakarta_Sans'] font-extrabold text-xs text-black">Progression Coach</span>
+                                    <span class="text-[10px] bg-teal-100 text-teal-800 font-bold px-2 py-0.5 rounded-full">Target Today</span>
+                                </div>
+                                <p class="text-xs text-[#5d5f5d] mt-0.5">Last: <strong class="text-black">${lastW}kg × ${lastR} reps</strong> ➔ Rec: <strong class="text-teal-700 font-bold">${recW}kg × ${recR} reps</strong></p>
+                            </div>
+                        </div>
+                        <button class="bg-teal-600 text-white hover:bg-teal-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 self-end sm:self-center" onclick="applyRecommendation(${exIdx}, ${recW}, ${recR})">
+                            <span class="material-symbols-outlined text-[15px]">auto_awesome</span> Apply Target
+                        </button>
+                    </div>`;
+                }
+
+                return `
+                <article class="bg-white rounded-2xl p-6 border border-[#e2e2e2] shadow-sm relative overflow-hidden flex flex-col gap-4">
+                    <!-- Top Progress Bar -->
+                    <div class="absolute top-0 left-0 h-1 bg-[#f3f3f3] w-full">
+                        <div class="h-full bg-black transition-all duration-300" style="width: ${progressPct}%;"></div>
+                    </div>
+
+                    <!-- Header -->
+                    <div class="flex justify-between items-start pt-1">
+                        <div>
+                            <span class="px-2.5 py-0.5 rounded-md bg-[#f3f3f3] text-[#5d5f5d] text-[11px] font-bold uppercase tracking-wider">${ex.muscleGroup}</span>
+                            <h3 class="font-['Plus_Jakarta_Sans'] text-xl font-bold text-black mt-1">${ex.exerciseName}</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#848484] hover:bg-red-50 hover:text-red-600 flex items-center justify-center transition-colors" onclick="removeExercise(${exIdx})" title="Remove Exercise">
+                                <span class="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Unified Top Coach Bar (Separated from Sets Table) -->
+                    <div id="coach-bar-${exIdx}" class="flex flex-col gap-1.5 ${!coachMode ? 'hidden' : ''}">
+                        ${coachBanner}
+                        <div id="coach-live-${exIdx}" class="mx-4"></div>
+                    </div>
+
+                    <!-- Sets Table -->
+                    <div class="flex flex-col gap-2">
+                        <div class="grid grid-cols-12 gap-2 px-4 pb-1 border-b border-[#eeeeee] text-xs font-bold uppercase tracking-wider text-[#848484]">
+                            <div class="col-span-1 text-center">Set</div>
+                            <div class="col-span-3 text-center">Weight (kg)</div>
+                            <div class="col-span-3 text-center">Reps</div>
+                            <div class="col-span-3 text-center">RPE</div>
+                            <div class="col-span-2 text-center">Done</div>
+                        </div>
+                        ${ex.sets.map((set, setIdx) => {
+                            // RPE dropdown pill rendering
+                            const rpePills = set.logged
+                                ? (set.rpe ? `<span class="px-2.5 py-1 rounded-full bg-[#1b1b1b] text-white text-xs font-bold">@${set.rpe}</span>` : `<span class="text-xs text-[#c6c6c6]">—</span>`)
+                                : `<select class="appearance-none bg-[#f3f3f3] hover:bg-[#e2e2e2] text-black font-bold py-1.5 px-3 rounded-lg text-xs cursor-pointer text-center focus:ring-2 focus:ring-black transition-all shadow-sm ${set.rpe ? 'bg-[#1b1b1b] text-white hover:bg-[#2b2b2b]' : ''}" onchange="toggleRpe(${exIdx}, ${setIdx}, this.value)" ${set.logged ? 'disabled' : ''}>
+                                    <option value="">+ RPE ▾</option>
+                                    ${RPE_VALUES.map(v => `<option value="${v}" ${set.rpe === v ? 'selected' : ''}>${RPE_DESCRIPTORS[v] || '@' + v}</option>`).join('')}
+                                   </select>`;
+
+                            return `
+                            <div class="grid grid-cols-12 gap-2 px-4 py-2.5 rounded-xl items-center transition-colors ${set.logged ? 'bg-[#f3f3f3]/70 opacity-70' : 'bg-[#f9f9f9] border border-[#e2e2e2]'}" id="set-row-${exIdx}-${setIdx}">
+                                <div class="col-span-1 text-center font-bold text-xs ${set.logged ? 'text-[#848484]' : 'text-black'}">${setIdx + 1}</div>
+                                <div class="col-span-3 flex justify-center">
+                                    <input class="w-20 bg-white border border-[#e2e2e2] rounded-lg py-1.5 px-2 text-center text-sm font-bold text-black focus:ring-2 focus:ring-black focus:border-black transition-all ${set.logged ? 'bg-transparent border-transparent' : ''}" type="number" step="2.5" value="${set.weight}" placeholder="kg" oninput="updateSetLive(${exIdx}, ${setIdx}, 'weight', this.value)" ${set.logged ? 'disabled' : ''}>
+                                </div>
+                                <div class="col-span-3 flex justify-center">
+                                    <input class="w-20 bg-white border border-[#e2e2e2] rounded-lg py-1.5 px-2 text-center text-sm font-bold text-black focus:ring-2 focus:ring-black focus:border-black transition-all ${set.logged ? 'bg-transparent border-transparent' : ''}" type="number" value="${set.reps}" placeholder="reps" oninput="updateSetLive(${exIdx}, ${setIdx}, 'reps', this.value)" ${set.logged ? 'disabled' : ''}>
+                                </div>
+                                <div class="col-span-3 flex items-center justify-center">
+                                    ${rpePills}
+                                </div>
+                                <div class="col-span-2 flex justify-center">
+                                    <button class="w-8 h-8 rounded-full flex items-center justify-center transition-all ${set.logged ? 'bg-[#16a34a] text-white shadow-sm' : 'bg-white border border-[#c6c6c6] text-[#848484] hover:border-black hover:text-black'}" onclick="toggleSet(${exIdx}, ${setIdx})">
+                                        <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check</span>
+                                    </button>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+
+                    <!-- Add Set CTA -->
+                    <div class="flex justify-center pt-2">
+                        <button class="flex items-center gap-1.5 text-xs font-bold text-[#5d5f5d] hover:text-black transition-colors py-2 px-4 rounded-full bg-[#f3f3f3] hover:bg-[#e8e8e8]" onclick="addSet(${exIdx})">
+                            <span class="material-symbols-outlined text-[16px]">add</span> Add Set
+                        </button>
+                    </div>
+                </article>`;
+            }).join('');
+        }
+
+        function updateSet(exIdx, setIdx, field, val) {
+            workoutExercises[exIdx].sets[setIdx][field] = val !== '' ? parseFloat(val) : '';
+        }
+
+        // Live update — patches ONLY the 1RM badge, without rebuilding the DOM
+        function updateSetLive(exIdx, setIdx, field, val) {
+            workoutExercises[exIdx].sets[setIdx][field] = val !== '' ? parseFloat(val) : '';
+            patch1RmBadge(exIdx, setIdx);
+        }
+
+        function patch1RmBadge(exIdx, setIdx) {
+            if (!coachMode) return;
+            const el = document.getElementById(`coach-live-${exIdx}`);
+            if (!el) return;
+            const set = workoutExercises[exIdx].sets[setIdx];
+            const ex = workoutExercises[exIdx];
+            const w = parseFloat(set.weight) || 0;
+            const r = parseInt(set.reps) || 0;
+            const est1Rm = w > 0 && r > 0 ? w * (1 + r / 30) : 0;
+            const best = ex.best1Rm || 0;
+
+            if (!set.logged && w > 0 && best > 0) {
+                const currentTarget = Math.max(1, Math.ceil((best / w - 1) * 30));
+                const jumpTarget = Math.max(1, Math.ceil((best / (w + 5) - 1) * 30));
+                if (r > 0 && est1Rm > best) {
+                    el.innerHTML = `<div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1b1b1b] border border-[#eab308]/40 animate-pulse mt-1"><span class="text-sm">🔥</span><span class="text-[11px] font-bold text-[#eab308]">Beating 1RM PR! ${est1Rm.toFixed(1)} kg vs ${best.toFixed(1)} kg</span></div>`;
+                } else {
+                    el.innerHTML = `<div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#f3f3f3] border border-[#e2e2e2] mt-1"><span class="text-sm">🎯</span><span class="text-[11px] font-semibold text-[#5d5f5d]">Set ${setIdx + 1} Live Target: <span class="text-black font-bold">${currentTarget}+ reps</span> @ ${w}kg <span class="text-[#a0a0a0]">or</span> <span class="text-black font-bold">${jumpTarget}+ reps</span> @ ${w + 5}kg (+5kg jump)</span></div>`;
+                }
+            } else {
+                el.innerHTML = '';
+            }
+        }
+
+        // Select RPE value for a set from dropdown
+        function toggleRpe(exIdx, setIdx, value) {
+            const set = workoutExercises[exIdx].sets[setIdx];
+            set.rpe = value !== '' && value != null ? parseFloat(value) : null;
+            renderWorkout();
+        }
+
+        async function toggleSet(exIdx, setIdx) {
+            const set = workoutExercises[exIdx].sets[setIdx];
+            const ex = workoutExercises[exIdx];
+
+            if (set._pending) return; // ignore double-taps while a request is in flight
+            set._pending = true;
+            try {
+                if (set.logged) {
+                    // Only mark unlogged once the server confirms the delete; a
+                    // swallowed failure here would orphan the row and dupe it on re-log.
+                    if (set.setId) {
+                        await API.delete(`/api/sessions/${sessionId}/sets/${set.setId}`);
+                        set.setId = null;
+                    }
+                    set.logged = false;
+                    renderWorkout();
+                    return;
+                }
+
+                if (!set.weight || !set.reps) {
+                    showToast('Enter both weight and reps before logging set', 'error');
+                    return;
+                }
+
+                const payload = {
+                    exerciseId: ex.exerciseId,
+                    setNumber: setIdx + 1,
+                    weight: parseFloat(set.weight),
+                    reps: parseInt(set.reps)
+                };
+                if (set.rpe != null) payload.rpe = set.rpe;
+
+                const res = await API.post(`/api/sessions/${sessionId}/sets`, payload);
+                set.logged = true;
+                set.setId = res.id;
+
+                // Check for 1RM PR (Epley)
+                const est1Rm = parseFloat(set.weight) * (1 + parseInt(set.reps) / 30);
+                const is1RmPr = ex.best1Rm > 0 && est1Rm > ex.best1Rm;
+
+                if (res.weightPr || res.repPr) {
+                    const prType = res.weightPr ? 'Weight' : 'Rep';
+                    showToast(`🔥 ${prType} PR! ${ex.exerciseName}: ${set.weight}kg × ${set.reps} reps!`, 'pr');
+                } else if (is1RmPr) {
+                    showToast(`🎯 New est. 1RM PR! ${ex.exerciseName}: ${est1Rm.toFixed(1)} kg`, 'pr');
+                } else {
+                    showToast(`Set logged${set.rpe ? ` @RPE ${set.rpe}` : ''}!`, 'success');
+                }
+
+                // Update best1Rm if this set beat it
+                if (is1RmPr) ex.best1Rm = Math.round(est1Rm * 10) / 10;
+
+                renderWorkout();
+                startTimer();
+            } catch (err) {
+                showToast(err.message || 'Failed to log set', 'error');
+            } finally {
+                set._pending = false;
+            }
+        }
+
+        function addSet(exIdx) {
+            const sets = workoutExercises[exIdx].sets;
+            const last = sets.length > 0 ? sets[sets.length - 1] : { weight: '', reps: '', rpe: null };
+            sets.push({ weight: last.weight, reps: last.reps, rpe: null, logged: false });
+            renderWorkout();
+        }
+
+        async function removeExercise(exIdx) {
+            const ex = workoutExercises[exIdx];
+            try {
+                for (const s of ex.sets) {
+                    if (s.setId) await API.delete(`/api/sessions/${sessionId}/sets/${s.setId}`);
+                }
+            } catch (err) {
+                // Don't drop it from the UI if its logged sets still exist server-side.
+                showToast(err.message || 'Failed to remove exercise', 'error');
+                return;
+            }
+            workoutExercises.splice(exIdx, 1);
+            renderWorkout();
+        }
+
+        let woSelectedExerciseId = null;
+        let woActiveFilter = 'All';
+
+        function showAddExercise() {
+            woSelectedExerciseId = null;
+            woActiveFilter = 'All';
+            document.getElementById('wo-exercise-search').value = '';
+            renderWoMuscleChips();
+            renderWoExerciseList();
+            document.getElementById('add-exercise-modal').classList.add('active');
+            setTimeout(() => document.getElementById('wo-exercise-search').focus(), 100);
+        }
+
+        function renderWoMuscleChips() {
+            const groups = [...new Set(allExercises.map(e => e.muscleGroup || 'General'))].sort();
+            const container = document.getElementById('wo-muscle-chips');
+            container.innerHTML = ['All', ...groups].map(g =>
+                `<button onclick="setWoMuscleFilter('${g}')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${woActiveFilter === g ? 'bg-black text-white shadow-sm' : 'bg-[#f3f3f3] text-[#5d5f5d] hover:bg-[#e8e8e8] border border-[#eeeeee]'}">${g}</button>`
+            ).join('');
+        }
+
+        function setWoMuscleFilter(group) {
+            woActiveFilter = group;
+            renderWoMuscleChips();
+            renderWoExerciseList();
+        }
+
+        function filterWoExerciseList() { renderWoExerciseList(); }
+
+        function renderWoExerciseList() {
+            const query = (document.getElementById('wo-exercise-search').value || '').toLowerCase();
+            const container = document.getElementById('wo-exercise-picker-list');
+            let filtered = allExercises.filter(e => {
+                const matchSearch = e.name.toLowerCase().includes(query) || (e.muscleGroup || '').toLowerCase().includes(query);
+                const matchFilter = woActiveFilter === 'All' || (e.muscleGroup || 'General') === woActiveFilter;
+                return matchSearch && matchFilter;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="py-8 text-center text-sm text-[#848484]">No exercises found</div>';
+                return;
+            }
+
+            const groups = {};
+            filtered.forEach(e => {
+                const g = e.muscleGroup || 'General';
+                if (!groups[g]) groups[g] = [];
+                groups[g].push(e);
+            });
+
+            let html = '';
+            Object.keys(groups).sort().forEach(group => {
+                html += `<div class="text-[10px] font-bold uppercase tracking-wider text-[#848484] pt-4 pb-1.5 sticky top-0 bg-white" style="background: var(--bg-surface);">${group}</div>`;
+                groups[group].sort((a,b) => a.name.localeCompare(b.name)).forEach(e => {
+                    const isSelected = woSelectedExerciseId == e.id;
+                    html += `<button onclick="woSelectExercise(${e.id})" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${isSelected ? 'bg-black text-white' : 'hover:bg-[#f3f3f3]'}" style="margin-bottom: 2px;">
+                        <span class="material-symbols-outlined text-[18px] ${isSelected ? 'text-white' : 'text-[#848484]'}" style="font-variation-settings: 'FILL' ${isSelected ? 1 : 0};">fitness_center</span>
+                        <span class="flex-1 text-sm font-semibold">${e.name}</span>
+                        ${isSelected ? '<span class="material-symbols-outlined text-[18px]">check</span>' : ''}
+                    </button>`;
+                });
+            });
+            container.innerHTML = html;
+        }
+
+        function woSelectExercise(id) {
+            woSelectedExerciseId = woSelectedExerciseId == id ? null : id;
+            renderWoExerciseList();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        async function addExerciseToWorkout() {
+            if (!woSelectedExerciseId) { showToast('Select an exercise first', 'error'); return; }
+            const found = allExercises.find(e => e.id == woSelectedExerciseId);
+            if (!found) return;
+
+            const history = await API.get(`/api/exercises/${found.id}/history`).catch(() => []);
+            const lastSession = history.length > 0 ? history[history.length - 1] : null;
+
+            // Fetch best 1RM for this exercise
+            const best1RmData = await API.get(`/api/exercises/${found.id}/best-1rm`).catch(() => ({ best1Rm: 0 }));
+            workoutExercises.push({
+                exerciseId: found.id,
+                exerciseName: found.name,
+                muscleGroup: found.muscleGroup || 'General',
+                lastSession: lastSession,
+                best1Rm: best1RmData.best1Rm || 0,
+                sets: [
+                    { weight: lastSession ? lastSession.maxWeight : '', reps: lastSession ? lastSession.maxReps : '', rpe: null, logged: false },
+                    { weight: lastSession ? lastSession.maxWeight : '', reps: lastSession ? lastSession.maxReps : '', rpe: null, logged: false },
+                    { weight: lastSession ? lastSession.maxWeight : '', reps: lastSession ? lastSession.maxReps : '', rpe: null, logged: false }
+                ]
+            });
+            closeModal('add-exercise-modal');
+            renderWorkout();
+        }
+
+        async function endWorkout() {
+            if (!confirm('End and save workout session?')) return;
+            if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+            localStorage.removeItem('activeSession');
+            showToast('Workout saved successfully!', 'success');
+            window.location.href = '/dashboard.html';
+        }
+
+        // Rest Timer & Coach Helpers
+        function startTimer() {
+            timerSeconds = timerTotal;
+            const timer = document.getElementById('rest-timer');
+            timer.classList.add('active');
+            updateTimerDisplay();
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timer.classList.remove('active');
+                    playBeep();
+                    showToast('⏰ Rest time over! Ready for next set.', 'info');
+                }
+            }, 1000);
+        }
+
+        function setTimerPreset(s) {
+            timerTotal = s;
+            timerSeconds = s;
+            updateTimerDisplay();
+            showToast(`⏰ Rest timer preset set to ${s}s`, 'info');
+        }
+
+        function playBeep() {
+            try {
+                audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = audioCtx;
+                if (ctx.state === 'suspended') ctx.resume();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch (e) {
+                console.log('Audio chime not allowed or supported', e);
+            }
+        }
+
+
+        function applyRecommendation(exIdx, recW, recR) {
+            const ex = workoutExercises[exIdx];
+            let count = 0;
+            ex.sets.forEach(s => {
+                if (!s.logged) {
+                    s.weight = recW;
+                    s.reps = recR;
+                    count++;
+                }
+            });
+            renderWorkout();
+            showToast(`✨ Applied target (${recW}kg × ${recR}) to ${count} unlogged sets!`, 'success');
+        }
+
+        function skipTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('rest-timer').classList.remove('active');
+        }
+
+        function addTime(s) {
+            timerSeconds += s;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSeconds / 60);
+            const s = timerSeconds % 60;
+            document.getElementById('timer-display').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+            const pct = (timerSeconds / timerTotal) * 100;
+            document.getElementById('timer-bar').style.width = `${Math.min(100, Math.max(0, pct))}%`;
+        }
+
+        // Calculators
+        function showWarmupCalc() { document.getElementById('warmup-modal').classList.add('active'); }
+
+        function calculateWarmup() {
+            const target = parseFloat(document.getElementById('warmup-weight').value);
+            if (!target || target <= 0) return;
+            const sets = [
+                { pct: 0.50, reps: 10, note: 'Barbell focus / mobility' },
+                { pct: 0.65, reps: 6, note: 'Speed & form check' },
+                { pct: 0.80, reps: 3, note: 'Neurological prep' },
+                { pct: 0.90, reps: 1, note: 'Final heavy prime' }
+            ];
+            document.getElementById('warmup-result').innerHTML = sets.map((s, i) => `
+                <div class="calc-result flex items-center justify-between">
+                    <div>
+                        <span class="font-bold text-sm text-black">Warm-up Set ${i + 1}: ${Math.round((target * s.pct) / 2.5) * 2.5} kg</span>
+                        <p class="text-xs text-[#5d5f5d]">${s.note}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-white font-bold text-xs text-black border border-[#e2e2e2]">${s.reps} reps</span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

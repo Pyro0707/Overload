@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Overload — Track every rep. Beat every PR.</title>
+    <meta name="description" content="The minimalist workout logger designed for the disciplined. Data-driven insights without the clutter."/>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Custom Style & Fonts -->
+    <link rel="stylesheet" href="/css/style.css"/>
+    <!-- Icons & Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        background: "#f9f9f9",
+                        surface: "#ffffff",
+                        "surface-low": "#f3f3f3",
+                        "surface-high": "#e8e8e8",
+                        primary: "#000000",
+                        secondary: "#5d5f5d",
+                        muted: "#848484",
+                        border: "#e2e2e2"
+                    },
+                    fontFamily: {
+                        display: ["Plus Jakarta Sans", "sans-serif"],
+                        body: ["Hanken Grotesk", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f9f9f9;
+            color: #1b1b1b;
+            font-family: 'Hanken Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        .font-display {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .ambient-shadow {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+        .floating-shadow {
+            box-shadow: 0 12px 36px rgba(0,0,0,0.08);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* ── Advanced Animations & Reveal System ── */
+        :root {
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+            --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(32px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(0.5deg); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 4px rgba(234, 179, 8, 0.4)); }
+            50% { filter: drop-shadow(0 0 16px rgba(234, 179, 8, 0.85)); }
+        }
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes prFeedSlide {
+            0% { opacity: 0; transform: translateY(14px) scale(0.96); }
+            15% { opacity: 1; transform: translateY(0) scale(1); }
+            85% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-14px) scale(0.96); }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.9s var(--ease-out) forwards;
+        }
+        .animate-float {
+            animation: floatSlow 5.5s ease-in-out infinite;
+            will-change: transform;
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+        .animate-spin-slow {
+            animation: spinSlow 22s linear infinite;
+            will-change: transform;
+        }
+
+        /* Scroll Reveal Utility — Ultra Smooth Hardware Accelerated */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(36px) scale(0.97);
+            transition: opacity 800ms var(--ease-out), transform 800ms var(--ease-out);
+            will-change: opacity, transform;
+        }
+        .reveal-on-scroll.revealed {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+        .delay-400 { transition-delay: 400ms; }
+        .delay-500 { transition-delay: 500ms; }
+
+        /* Interactive Card Hover Lifts with Touch Protection */
+        .card-hover {
+            transition: transform 320ms var(--ease-out), box-shadow 320ms var(--ease-out), border-color 320ms ease;
+            will-change: transform, box-shadow;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .card-hover:hover {
+                transform: translateY(-7px) scale(1.01);
+                box-shadow: 0 20px 48px rgba(0,0,0,0.09);
+                border-color: rgba(0,0,0,0.3);
+            }
+        }
+
+        /* Phone Parallax & Hover Dynamics */
+        .phone-card {
+            transition: transform 450ms var(--ease-out), box-shadow 450ms var(--ease-out), z-index 0s;
+            will-change: transform, box-shadow;
+        }
+        .phone-container {
+            perspective: 1200px;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .phone-card:hover {
+                z-index: 40 !important;
+                box-shadow: 0 28px 60px rgba(0,0,0,0.18);
+            }
+            .phone-left:hover {
+                transform: rotate(-1deg) translateY(-14px) scale(1.06) !important;
+            }
+            .phone-right:hover {
+                transform: rotate(1deg) translateY(-14px) scale(1.06) !important;
+            }
+            .phone-center:hover {
+                transform: rotate(0deg) translateY(-10px) scale(1.09) !important;
+            }
+        }
+
+        /* Chart Interactive Bars */
+        .chart-bar {
+            transform-origin: bottom;
+            transform: scaleY(0);
+            transition: transform 700ms var(--ease-out), background-color 200ms ease;
+            will-change: transform;
+        }
+        .chart-bar.animated {
+            transform: scaleY(1);
+        }
+        .chart-bar:hover {
+            background-color: #000000 !important;
+            transform: scaleY(1.04);
+        }
+
+        /* Live PR Feed Text Sequence */
+        .pr-feed-text {
+            animation: prFeedSlide 4s var(--ease-out) infinite;
+        }
+
+        /* Accessibility: Reduced Motion Override */
+        @media (prefers-reduced-motion: reduce) {
+            .reveal-on-scroll {
+                opacity: 1 !important;
+                transform: none !important;
+                transition: none !important;
+            }
+            .animate-float, .animate-pulse-glow, .animate-spin-slow, .pr-feed-text, .chart-bar {
+                animation: none !important;
+                transform: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col justify-between">
+
+<!-- Navbar -->
+<nav class="sticky top-0 w-full z-50 bg-[#f9f9f9]/90 backdrop-blur-md border-b border-border/60">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2">
+            <span class="font-display font-extrabold text-xl text-black tracking-tight">Overload</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8 font-medium text-sm text-secondary">
+            <a href="#features" class="hover:text-black transition-colors">Features</a>
+            <a href="#how-it-works" class="hover:text-black transition-colors">How it Works</a>
+
+        </div>
+        <div>
+            <button onclick="window.location.href='/index.html'" class="bg-black text-white font-semibold text-sm px-6 py-2.5 rounded-full hover:opacity-85 active:scale-[0.97] transition-all shadow-sm">
+                Get Started
+            </button>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-6 py-12 md:py-16 flex flex-col gap-28 md:gap-36 w-full">
+
+    <!-- Hero Section (Viewport Stable: min-h-[100dvh-5rem]) -->
+    <section class="flex flex-col items-center text-center justify-center min-h-[calc(100dvh-6rem)] gap-6 pt-2 md:pt-4 animate-fade-in-up">
+        <h1 class="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl text-black tracking-tight leading-[1.1] max-w-3xl pb-1">
+            Track every rep.<br/>Beat every PR.
+        </h1>
+        <p class="text-secondary font-normal text-base sm:text-lg max-w-xl leading-relaxed">
+            The minimalist workout logger designed for the disciplined. Data-driven insights without the clutter.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center gap-4 mt-2">
+            <button onclick="window.location.href='/index.html'" class="bg-black text-white font-semibold text-sm px-8 py-4 rounded-full hover:opacity-85 active:scale-[0.97] transition-all shadow-md w-full sm:w-auto hover:-translate-y-0.5 duration-200">
+                Start Tracking Free
+            </button>
+            <a href="#how-it-works" class="text-black font-semibold text-sm px-6 py-4 rounded-full hover:bg-surface-high/50 active:scale-[0.97] transition-all flex items-center gap-1.5 w-full sm:w-auto justify-center hover:-translate-y-0.5 duration-200">
+                <span>See how it works</span>
+                <span>→</span>
+            </a>
+        </div>
+
+        <!-- Hero Fanned Phone Mockups -->
+        <div id="hero-phones-area" class="w-full max-w-4xl mt-14 sm:mt-20 relative flex justify-center items-center h-[380px] sm:h-[460px] select-none pointer-events-auto phone-container">
+            <!-- Left Phone Mockup (-rotate-6) -->
+            <div class="phone-card phone-left absolute -left-2 sm:left-6 md:left-12 top-6 w-[240px] sm:w-[280px] bg-white rounded-[2rem] border border-border p-4 floating-shadow transform -rotate-6 hidden sm:flex flex-col gap-3 opacity-95 reveal-on-scroll delay-100 cursor-pointer">
+                <div class="flex items-center justify-between border-b border-border/60 pb-2">
+                    <span class="font-display font-bold text-xs text-black">PPL - Push A</span>
+                    <span class="text-[10px] text-secondary bg-surface-low px-2 py-0.5 rounded-full">Completed</span>
+                </div>
+                <div class="flex flex-col gap-2 text-left">
+                    <div class="text-[11px] font-semibold text-black">Overhead Press</div>
+                    <div class="flex justify-between text-[10px] text-secondary bg-surface-low p-2 rounded-lg">
+                        <span>Set 3</span>
+                        <span class="font-bold text-black font-display">65 kg × 8 reps</span>
+                    </div>
+                    <div class="text-[11px] font-semibold text-black mt-1">Incline Dumbbell Press</div>
+                    <div class="flex justify-between text-[10px] text-secondary bg-surface-low p-2 rounded-lg">
+                        <span>Set 4</span>
+                        <span class="font-bold text-black font-display">36 kg × 10 reps</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Phone Mockup (rotate-6) -->
+            <div class="phone-card phone-right absolute -right-2 sm:right-6 md:right-12 top-6 w-[240px] sm:w-[280px] bg-white rounded-[2rem] border border-border p-4 floating-shadow transform rotate-6 hidden sm:flex flex-col gap-3 opacity-95 reveal-on-scroll delay-300 cursor-pointer">
+                <div class="flex items-center justify-between border-b border-border/60 pb-2">
+                    <span class="font-display font-bold text-xs text-black">Volume Analytics</span>
+                    <span class="text-[10px] text-secondary">Last 30 Days</span>
+                </div>
+                <div class="flex flex-col gap-3 text-left">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-[10px] text-secondary">Total Tonnage</span>
+                        <span class="font-display font-extrabold text-sm text-black">18,450 kg</span>
+                    </div>
+                    <!-- Mini bar chart preview -->
+                    <div class="flex items-end justify-between h-20 pt-2 px-1 gap-1 border-b border-border/50">
+                        <div class="w-1/6 bg-surface-low h-[40%] rounded-t-sm transition-all duration-700 hover:bg-black/60"></div>
+                        <div class="w-1/6 bg-surface-low h-[65%] rounded-t-sm transition-all duration-700 hover:bg-black/60"></div>
+                        <div class="w-1/6 bg-surface-low h-[55%] rounded-t-sm transition-all duration-700 hover:bg-black/60"></div>
+                        <div class="w-1/6 bg-surface-low h-[80%] rounded-t-sm transition-all duration-700 hover:bg-black/60"></div>
+                        <div class="w-1/6 bg-black h-[100%] rounded-t-sm transition-all duration-700"></div>
+                    </div>
+                    <div class="text-[10px] text-[#16a34a] font-semibold flex items-center gap-1">
+                        <span>↑ 14.2% volume progression</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Active Phone Mockup (rotate-0, elevated z-20) -->
+            <div class="phone-card phone-center relative z-20 w-[280px] sm:w-[320px] bg-white rounded-[2.5rem] border border-border p-5 floating-shadow flex flex-col gap-4 transform rotate-0 scale-105 reveal-on-scroll delay-200 cursor-pointer">
+                <div class="flex items-center justify-between border-b border-border pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-black fill-icon text-lg animate-bounce">fitness_center</span>
+                        <span class="font-display font-bold text-xs sm:text-sm text-black">Active Workout</span>
+                    </div>
+                    <span class="bg-black text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#16a34a] animate-ping"></span> LIVE
+                    </span>
+                </div>
+                <div class="flex flex-col gap-2.5 text-left">
+                    <div class="flex justify-between items-center">
+                        <span class="font-display font-bold text-sm text-black">Barbell Bench Press</span>
+                        <span class="text-xs font-semibold text-secondary">Set 3 of 4</span>
+                    </div>
+                    <div class="bg-surface-low rounded-xl p-3 flex justify-between items-center">
+                        <span class="text-xs text-secondary">Set 1</span>
+                        <span class="text-xs font-semibold text-black font-display">100 kg × 10</span>
+                        <span class="material-symbols-outlined text-black text-sm">check_circle</span>
+                    </div>
+                    <div class="bg-surface-low rounded-xl p-3 flex justify-between items-center">
+                        <span class="text-xs text-secondary">Set 2</span>
+                        <span class="text-xs font-semibold text-black font-display">105 kg × 8</span>
+                        <span class="material-symbols-outlined text-black text-sm">check_circle</span>
+                    </div>
+                    <!-- Active Set Row -->
+                    <div class="bg-white border-2 border-black rounded-xl p-3 flex justify-between items-center shadow-sm relative transition-all duration-300 hover:scale-[1.02]">
+                        <span class="text-xs font-bold text-black">Set 3</span>
+                        <span class="text-xs font-extrabold text-black font-display">105 kg × 8</span>
+                        <span class="bg-black text-white text-[9px] font-bold px-2 py-0.5 rounded-full">WORKING</span>
+                    </div>
+                </div>
+                <div class="mt-1">
+                    <div class="w-full bg-black text-white font-semibold text-xs py-3 rounded-full text-center shadow-sm hover:opacity-85 transition-all">
+                        Complete Set
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Section 1 — "Log workouts without breaking your set." -->
+    <section id="how-it-works" class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center reveal-on-scroll">
+        <!-- Left Column: 4 Feature Rows -->
+        <div class="flex flex-col gap-8">
+            <div>
+                <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-black tracking-tight leading-tight">
+                    Log workouts without breaking your set.
+                </h2>
+            </div>
+            <div class="flex flex-col gap-6 mt-2">
+                <!-- Row 1 -->
+                <div class="flex items-start gap-4 reveal-on-scroll delay-100">
+                    <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black flex-shrink-0 mt-0.5 transition-transform hover:scale-110 duration-200">
+                        <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-base text-black">Auto-fill smarts</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Predicts your next weight based on previous performance</p>
+                    </div>
+                </div>
+                <!-- Row 2 -->
+                <div class="flex items-start gap-4 reveal-on-scroll delay-200">
+                    <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black flex-shrink-0 mt-0.5 transition-transform hover:scale-110 duration-200">
+                        <span class="material-symbols-outlined text-[20px]">bolt</span>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-base text-black">On-the-fly sets</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Add or remove sets with a single tap. No complex menus</p>
+                    </div>
+                </div>
+                <!-- Row 3 -->
+                <div class="flex items-start gap-4 reveal-on-scroll delay-300">
+                    <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black flex-shrink-0 mt-0.5 transition-transform hover:scale-110 duration-200">
+                        <span class="material-symbols-outlined text-[20px]">timer</span>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-base text-black">Adaptive rest timer</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Customizable vibrations for every exercise type</p>
+                    </div>
+                </div>
+                <!-- Row 4 -->
+                <div class="flex items-start gap-4 reveal-on-scroll delay-400">
+                    <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black flex-shrink-0 mt-0.5 transition-transform hover:scale-110 duration-200">
+                        <span class="material-symbols-outlined text-[20px]">psychology</span>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-base text-black">Progression Coach</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Smart target weight and rep recommendations every session</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Floating Card Mockup -->
+        <div class="flex justify-center reveal-on-scroll delay-200">
+            <div class="card-hover w-full max-w-md bg-white rounded-2xl border border-border p-6 md:p-8 floating-shadow flex flex-col gap-6">
+                <div class="flex items-center justify-between border-b border-border pb-4">
+                    <div>
+                        <span class="text-xs uppercase font-semibold text-secondary tracking-wider">Active Lift</span>
+                        <h3 class="font-display font-extrabold text-lg text-black mt-0.5">Barbell Bench Press</h3>
+                    </div>
+                    <span class="text-xs font-bold text-black bg-surface-low px-3 py-1.5 rounded-full">Set 3 of 4</span>
+                </div>
+                <!-- Inputs row -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-secondary">Weight (kg)</label>
+                        <div class="bg-surface-low rounded-xl px-4 py-3 font-display font-bold text-xl text-black border border-transparent transition-all focus-within:ring-2 focus-within:ring-black">
+                            100
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-secondary">Reps</label>
+                        <div class="bg-surface-low rounded-xl px-4 py-3 font-display font-bold text-xl text-black border border-transparent transition-all focus-within:ring-2 focus-within:ring-black">
+                            8
+                        </div>
+                    </div>
+                </div>
+                <!-- Complete Button -->
+                <button type="button" onclick="window.location.href='/index.html'" class="w-full bg-black text-white font-semibold text-sm py-4 rounded-full hover:opacity-85 active:scale-[0.97] transition-all shadow-md mt-2 flex items-center justify-center gap-2">
+                    <span>Complete Set</span>
+                    <span class="material-symbols-outlined text-lg">check</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Section 2 — "Live PR detection for every lift." -->
+    <section id="features" class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center reveal-on-scroll">
+        <!-- Left Side: Dark rounded achievement toast card -->
+        <div class="flex justify-center lg:justify-start order-2 lg:order-1 reveal-on-scroll delay-200">
+            <div id="live-pr-toast" class="animate-float w-full max-w-md bg-[#1b1b1b] text-white rounded-2xl p-6 md:p-8 shadow-2xl border border-[#303030] flex items-center gap-4 transition-all duration-300 hover:scale-[1.03] hover:border-amber-500/50">
+                <div class="animate-pulse-glow w-12 h-12 rounded-full bg-[#eab308]/20 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-[#eab308] text-2xl fill-icon animate-spin-slow">star</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span class="text-[11px] uppercase tracking-widest font-bold text-[#eab308]">ACHIEVEMENT UNLOCKED</span>
+                    <div id="live-pr-text" class="font-display font-bold text-base text-white pr-feed-text">New PR — 105kg × 8</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Headline + description + avatar cluster -->
+        <div class="flex flex-col gap-6 order-1 lg:order-2 reveal-on-scroll delay-100">
+            <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-black tracking-tight leading-tight">
+                Live PR detection for every lift.
+            </h2>
+            <p class="text-secondary font-normal text-base leading-relaxed">
+                Overload scans your history in real-time. The moment you beat a personal record, we celebrate it. No more manual searching through old notebooks to see if you've progressed.
+            </p>
+            <div class="flex items-center gap-4 pt-2">
+                <div class="flex -space-x-2 overflow-hidden">
+                    <div class="inline-block h-9 w-9 rounded-full ring-2 ring-white bg-[#303030] text-white text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 hover:z-10">JD</div>
+                    <div class="inline-block h-9 w-9 rounded-full ring-2 ring-white bg-[#5d5f5d] text-white text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 hover:z-10">MK</div>
+                    <div class="inline-block h-9 w-9 rounded-full ring-2 ring-white bg-black text-white text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 hover:z-10">AL</div>
+                    <div class="inline-block h-9 w-9 rounded-full ring-2 ring-white bg-[#e2e2e2] text-black text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 hover:z-10">+</div>
+                </div>
+                <span class="text-sm font-semibold text-secondary">Join 12,000+ athletes chasing PRs.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Section 3 — "Visualize your progress with clinical precision." -->
+    <section id="analytics" class="flex flex-col gap-10 reveal-on-scroll">
+        <div class="text-center max-w-2xl mx-auto">
+            <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-black tracking-tight leading-tight">
+                Visualize your progress with clinical precision.
+            </h2>
+        </div>
+
+        <!-- Full-width Dashboard Mockup Card -->
+        <div class="card-hover w-full bg-white rounded-2xl p-6 md:p-8 ambient-shadow border border-border flex flex-col md:flex-row gap-8 reveal-on-scroll delay-100">
+            <!-- Sidebar matching actual app nav -->
+            <div id="mock-nav" class="w-full md:w-56 flex-shrink-0 flex flex-col gap-1.5 border-b md:border-b-0 md:border-r border-border/80 pb-6 md:pb-0 md:pr-6">
+                <div class="text-xs font-bold uppercase tracking-wider text-muted mb-2 px-3">Navigation</div>
+                <button onclick="switchMockTab('dashboard')" class="mock-nav-btn text-left px-3 py-2.5 rounded-xl bg-black text-white font-semibold text-sm flex items-center gap-3 transition-transform hover:translate-x-1">
+                    <span class="material-symbols-outlined text-lg">dashboard</span>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchMockTab('routines')" class="mock-nav-btn text-left px-3 py-2.5 rounded-xl text-secondary font-medium text-sm flex items-center gap-3 hover:bg-surface-low transition-all hover:translate-x-1">
+                    <span class="material-symbols-outlined text-lg">list_alt</span>
+                    <span>Routines</span>
+                </button>
+                <button onclick="switchMockTab('workout')" class="mock-nav-btn text-left px-3 py-2.5 rounded-xl text-secondary font-medium text-sm flex items-center gap-3 hover:bg-surface-low transition-all hover:translate-x-1">
+                    <span class="material-symbols-outlined text-lg">add_circle</span>
+                    <span>Log Workout</span>
+                </button>
+                <button onclick="switchMockTab('history')" class="mock-nav-btn text-left px-3 py-2.5 rounded-xl text-secondary font-medium text-sm flex items-center gap-3 hover:bg-surface-low transition-all hover:translate-x-1">
+                    <span class="material-symbols-outlined text-lg">history</span>
+                    <span>History</span>
+                </button>
+                <button onclick="switchMockTab('progress')" class="mock-nav-btn text-left px-3 py-2.5 rounded-xl text-secondary font-medium text-sm flex items-center gap-3 hover:bg-surface-low transition-all hover:translate-x-1">
+                    <span class="material-symbols-outlined text-lg">trending_up</span>
+                    <span>Progress</span>
+                </button>
+                <button onclick="switchMockTab('settings')" class="mock-nav-btn text-left px-3 py-2.5 rounded-xl text-secondary font-medium text-sm flex items-center gap-3 hover:bg-surface-low transition-all hover:translate-x-1 mt-auto pt-2">
+                    <span class="material-symbols-outlined text-lg">settings</span>
+                    <span>Settings</span>
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 flex flex-col min-h-[300px]">
+                
+                <!-- Tab: Dashboard -->
+                <div id="mock-tab-dashboard" class="mock-tab-content flex flex-col gap-5 text-left animate-fade-in-up">
+                    <div>
+                        <h3 class="font-display font-bold text-lg text-black">Welcome back, Lohith</h3>
+                        <p class="text-xs text-secondary">Here is your training summary for this week</p>
+                    </div>
+                    <!-- KPI Row -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-surface-low/85 p-3 rounded-xl border border-border/40 flex flex-col gap-1">
+                            <span class="text-[10px] font-bold text-muted uppercase tracking-wider">Streak</span>
+                            <span class="font-display font-extrabold text-sm text-black flex items-center gap-1">🔥 12 <span class="text-[10px] font-normal text-secondary font-body">days</span></span>
+                        </div>
+                        <div class="bg-surface-low/85 p-3 rounded-xl border border-border/40 flex flex-col gap-1">
+                            <span class="text-[10px] font-bold text-muted uppercase tracking-wider">Workouts</span>
+                            <span class="font-display font-extrabold text-sm text-black flex items-center gap-1">🏋️ 24 <span class="text-[10px] font-normal text-secondary font-body">total</span></span>
+                        </div>
+                        <div class="bg-surface-low/85 p-3 rounded-xl border border-border/40 flex flex-col gap-1">
+                            <span class="text-[10px] font-bold text-muted uppercase tracking-wider">Last Lift</span>
+                            <span class="font-display font-extrabold text-sm text-black flex items-center gap-1">📅 Dec 18</span>
+                        </div>
+                    </div>
+                    <!-- Recent Sessions List -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-[10px] font-bold text-muted uppercase tracking-wider">Recent Sessions</span>
+                        <div class="bg-white border border-border rounded-xl p-3 flex justify-between items-center text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm text-[#0d9488]">fitness_center</span>
+                                <div>
+                                    <span class="font-bold text-black block">PPL - Push A</span>
+                                    <span class="text-[10px] text-secondary">Dec 18 • Chest & Shoulders</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full">Completed</span>
+                        </div>
+                        <div class="bg-white border border-border rounded-xl p-3 flex justify-between items-center text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm text-[#0d9488]">fitness_center</span>
+                                <div>
+                                    <span class="font-bold text-black block">PPL - Pull A</span>
+                                    <span class="text-[10px] text-secondary">Dec 16 • Back & Biceps</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full">Completed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Routines -->
+                <div id="mock-tab-routines" class="mock-tab-content hidden flex flex-col gap-5">
+                    <div class="flex justify-between items-center text-left">
+                        <div>
+                            <h3 class="font-display font-bold text-lg text-black">My Routine Templates</h3>
+                            <p class="text-xs text-secondary">Pre-programmed splits ready to start</p>
+                        </div>
+                        <button class="bg-black text-white text-xs font-semibold px-4 py-2 rounded-full hover:opacity-85 flex items-center gap-1.5 transition-all">
+                            <span class="material-symbols-outlined text-[14px]">add</span> New
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="border border-border rounded-xl p-4 flex flex-col gap-3 hover:border-black transition-colors text-left">
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-bold text-sm text-black">PPL - Push A</h4>
+                                <span class="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full">Active</span>
+                            </div>
+                            <p class="text-xs text-secondary">Chest, Shoulders & Triceps focus with flat bench, overhead press, and lateral raises.</p>
+                            <div class="flex items-center justify-between mt-2 pt-2 border-t border-border/40">
+                                <span class="text-[10px] font-semibold text-muted">5 Exercises • 45m</span>
+                                <button class="bg-surface-low text-black text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-black hover:text-white transition-colors">Start</button>
+                            </div>
+                        </div>
+                        <div class="border border-border rounded-xl p-4 flex flex-col gap-3 hover:border-black transition-colors text-left">
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-bold text-sm text-black">PPL - Pull A</h4>
+                                <span class="text-[10px] bg-surface-low text-secondary font-medium px-2 py-0.5 rounded-full">Template</span>
+                            </div>
+                            <p class="text-xs text-secondary">Back & Biceps volume: Deadlifts, Pull-ups, Chest-supported rows, and incline curls.</p>
+                            <div class="flex items-center justify-between mt-2 pt-2 border-t border-border/40">
+                                <span class="text-[10px] font-semibold text-muted">6 Exercises • 50m</span>
+                                <button class="bg-surface-low text-black text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-black hover:text-white transition-colors">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Log Workout -->
+                <div id="mock-tab-workout" class="mock-tab-content hidden flex flex-col gap-5">
+                    <div class="flex justify-between items-center bg-surface-low p-4 rounded-xl border border-border/40 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <div class="text-left">
+                                <h4 class="font-bold text-sm text-black">Active: PPL - Push A</h4>
+                                <p class="text-[10px] text-secondary">Started 14m ago</p>
+                            </div>
+                        </div>
+                        <span class="font-mono text-sm font-bold text-black" id="mock-timer">00:14:32</span>
+                    </div>
+
+                    <!-- Exercise card inside live workout tracker -->
+                    <div class="border border-border rounded-xl p-4 flex flex-col gap-3 text-left">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h5 class="font-bold text-xs text-black">1. Barbell Bench Press</h5>
+                                <p class="text-[10px] text-muted">Target: 4 sets × 6-8 reps (Rest: 180s)</p>
+                            </div>
+                            <button class="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">history</span> History
+                            </button>
+                        </div>
+                        <table class="w-full text-left text-xs font-medium">
+                            <thead>
+                                <tr class="text-muted text-[10px] uppercase border-b border-border/40 pb-2">
+                                    <th class="pb-1">Set</th>
+                                    <th class="pb-1">Previous</th>
+                                    <th class="pb-1">Weight</th>
+                                    <th class="pb-1">Reps</th>
+                                    <th class="pb-1 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-border/40 py-2">
+                                    <td class="py-2 text-black font-semibold">1</td>
+                                    <td class="py-2 text-muted">100kg × 8</td>
+                                    <td class="py-2"><input class="w-16 bg-surface-low border-0 rounded-lg p-1 text-center font-bold text-black" type="text" value="102.5" readonly></td>
+                                    <td class="py-2"><input class="w-12 bg-surface-low border-0 rounded-lg p-1 text-center font-bold text-black" type="text" value="8" readonly></td>
+                                    <td class="py-2 text-center"><button class="bg-emerald-500 text-white w-6 h-6 rounded-full inline-flex items-center justify-center"><span class="material-symbols-outlined text-[14px] font-bold">check</span></button></td>
+                                </tr>
+                                <tr class="py-2">
+                                    <td class="py-2 text-black font-semibold">2</td>
+                                    <td class="py-2 text-muted">100kg × 7</td>
+                                    <td class="py-2"><input class="w-16 bg-surface-low border-0 rounded-lg p-1 text-center font-bold text-black" type="text" placeholder="102.5" readonly></td>
+                                    <td class="py-2"><input class="w-12 bg-surface-low border-0 rounded-lg p-1 text-center font-bold text-black" type="text" placeholder="7" readonly></td>
+                                    <td class="py-2 text-center"><button class="bg-surface-low text-muted w-6 h-6 rounded-full inline-flex items-center justify-center hover:bg-black hover:text-white transition-all"><span class="material-symbols-outlined text-[14px]">check</span></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: History -->
+                <div id="mock-tab-history" class="mock-tab-content hidden flex flex-col gap-4 text-left">
+                    <div class="flex justify-between items-center border-b border-border/40 pb-2">
+                        <h3 class="font-display font-bold text-lg text-black">Workout Logs</h3>
+                        <span class="text-xs text-secondary font-medium">December 2026</span>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <div class="border border-border rounded-xl p-4 flex justify-between items-center hover:border-black cursor-pointer transition-colors text-left">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[16px] fill-icon">fitness_center</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-black">PPL - Push A</h4>
+                                    <p class="text-[10px] text-secondary">2 days ago • Dec 18, 2026</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-black block">4,280 kg Volume</span>
+                                <span class="text-[10px] text-muted">14 working sets</span>
+                            </div>
+                        </div>
+                        <div class="border border-border rounded-xl p-4 flex justify-between items-center hover:border-black cursor-pointer transition-colors text-left">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-orange-100 text-orange-800 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[16px] fill-icon">fitness_center</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-black">PPL - Pull A</h4>
+                                    <p class="text-[10px] text-secondary">4 days ago • Dec 16, 2026</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-black block">5,120 kg Volume</span>
+                                <span class="text-[10px] text-muted">16 working sets</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Progress -->
+                <div id="mock-tab-progress" class="mock-tab-content hidden flex flex-col gap-6 animate-fade-in-up">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-left">
+                        <div>
+                            <h3 class="font-display font-bold text-lg text-black">1-Rep Max Trends Over 12 Months</h3>
+                            <p class="text-xs text-secondary">Barbell Bench Press (Primary Compound Lift)</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-surface-low px-3 py-1.5 rounded-full text-xs font-semibold text-black">
+                            <span>Current 1RM:</span>
+                            <span class="font-display font-extrabold">126.7 kg</span>
+                        </div>
+                    </div>
+
+                    <!-- Simulated Line Chart Area -->
+                    <div id="chart-area" class="relative h-64 w-full bg-surface-low/50 rounded-xl border border-border/60 flex items-end p-6 overflow-hidden">
+                        <!-- Tooltip Callout -->
+                        <div id="chart-tooltip" class="absolute top-6 right-8 sm:right-24 bg-black text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow-xl z-10 flex flex-col transition-all duration-300 pointer-events-none border border-white/10">
+                            <span id="tooltip-month" class="text-[10px] text-muted uppercase tracking-wider font-bold">PEAK ESTIMATED 1RM</span>
+                            <span id="tooltip-val" class="font-display font-extrabold text-sm text-[#16a34a]">126.7 kg (+12.4 kg)</span>
+                        </div>
+
+                        <!-- Trend lines & points -->
+                        <div class="w-full flex justify-between items-end h-full pt-12 pb-2 relative gap-2">
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[35%] rounded-t-md cursor-pointer" data-month="Jan" data-rm="114.2 kg (+1.2 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[40%] rounded-t-md cursor-pointer" data-month="Feb" data-rm="115.5 kg (+1.3 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[44%] rounded-t-md cursor-pointer" data-month="Mar" data-rm="116.8 kg (+1.3 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[42%] rounded-t-md cursor-pointer" data-month="Apr" data-rm="116.2 kg (-0.6 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[52%] rounded-t-md cursor-pointer" data-month="May" data-rm="118.5 kg (+2.3 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[58%] rounded-t-md cursor-pointer" data-month="Jun" data-rm="120.0 kg (+1.5 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[65%] rounded-t-md cursor-pointer" data-month="Jul" data-rm="121.6 kg (+1.6 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[72%] rounded-t-md cursor-pointer" data-month="Aug" data-rm="123.1 kg (+1.5 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[76%] rounded-t-md cursor-pointer" data-month="Sep" data-rm="124.0 kg (+0.9 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[84%] rounded-t-md cursor-pointer" data-month="Oct" data-rm="125.2 kg (+1.2 kg)"></div>
+                            <div class="chart-bar flex-1 bg-[#d1d5db] h-[89%] rounded-t-md cursor-pointer" data-month="Nov" data-rm="125.9 kg (+0.7 kg)"></div>
+                            <div class="chart-bar flex-1 bg-black h-[96%] rounded-t-md relative shadow-md cursor-pointer" data-month="Dec (Current)" data-rm="126.7 kg (+12.4 kg Total)">
+                                <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-black rounded-full ring-4 ring-white animate-ping"></div>
+                                <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-black rounded-full ring-4 ring-white"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Settings -->
+                <div id="mock-tab-settings" class="mock-tab-content hidden flex flex-col gap-5 text-left">
+                    <div>
+                        <h3 class="font-display font-bold text-lg text-black">Preferences & Config</h3>
+                        <p class="text-xs text-secondary">Customize your logging workspace</p>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex justify-between items-center py-2 border-b border-border/40">
+                            <div>
+                                <h4 class="font-bold text-xs text-black">Preferred Weight Unit</h4>
+                                <p class="text-[10px] text-secondary">Default metric units for logs</p>
+                            </div>
+                            <div class="flex bg-surface-low p-1 rounded-lg border border-border/40">
+                                <button class="px-3 py-1 rounded text-xs font-bold bg-white shadow-sm text-black">Metric (kg)</button>
+                                <button class="px-3 py-1 rounded text-xs font-medium text-muted hover:text-black">Imperial (lbs)</button>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-border/40">
+                            <div>
+                                <h4 class="font-bold text-xs text-black">Default Rest Timer</h4>
+                                <p class="text-[10px] text-secondary">Countdown trigger after saving a set</p>
+                            </div>
+                            <select class="bg-surface-low border-0 text-xs font-bold rounded-lg p-1.5 text-black">
+                                <option>180 seconds (3:00)</option>
+                                <option>120 seconds (2:00)</option>
+                                <option>60 seconds (1:00)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Three-card Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-2 reveal-on-scroll delay-100">
+                <h3 class="font-display font-bold text-base text-black">Trend Analysis</h3>
+                <p class="text-secondary text-sm leading-relaxed">See volume and intensity trends over months, not just days</p>
+            </div>
+            <!-- Card 2 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-2 reveal-on-scroll delay-200">
+                <h3 class="font-display font-bold text-base text-black">Muscle Balance</h3>
+                <p class="text-secondary text-sm leading-relaxed">Identify lagging muscle groups with heatmaps and volume charts</p>
+            </div>
+            <!-- Card 3 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-2 reveal-on-scroll delay-300">
+                <h3 class="font-display font-bold text-base text-black">Plateau Alerts</h3>
+                <p class="text-secondary text-sm leading-relaxed">Get notified when progress stalls so you can switch your routine</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature grid — "Everything you need, nothing you don't." -->
+    <section class="flex flex-col gap-10 reveal-on-scroll">
+        <div class="text-center max-w-2xl mx-auto">
+            <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-black tracking-tight leading-tight">
+                Everything you need, nothing you don't.
+            </h2>
+        </div>
+
+        <!-- 3x2 Grid of Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Card 1 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-3 reveal-on-scroll delay-100">
+                <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black transition-transform duration-300 group-hover:scale-110">
+                    <span class="material-symbols-outlined text-[20px]">list_alt</span>
+                </div>
+                <h3 class="font-display font-bold text-base text-black">Routine Builder</h3>
+                <p class="text-secondary text-sm leading-relaxed">Design custom PPL, upper/lower, or split templates in seconds.</p>
+            </div>
+            <!-- Card 2 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-3 reveal-on-scroll delay-200">
+                <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black">
+                    <span class="material-symbols-outlined text-[20px]">history</span>
+                </div>
+                <h3 class="font-display font-bold text-base text-black">History</h3>
+                <p class="text-secondary text-sm leading-relaxed">Searchable calendar logs of every set, rep, and weight ever lifted.</p>
+            </div>
+            <!-- Card 3 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-3 reveal-on-scroll delay-300">
+                <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black">
+                    <span class="material-symbols-outlined text-[20px]">calculate</span>
+                </div>
+                <h3 class="font-display font-bold text-base text-black">Warm-up Calculator</h3>
+                <p class="text-secondary text-sm leading-relaxed">Automatic percentage-based warm-up sets to prep your joints.</p>
+            </div>
+            <!-- Card 4 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-3 reveal-on-scroll delay-100">
+                <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black">
+                    <span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+                </div>
+                <h3 class="font-display font-bold text-base text-black">Streak Tracking</h3>
+                <p class="text-secondary text-sm leading-relaxed">Stay accountable with consistency streaks and weekly volume goals.</p>
+            </div>
+            <!-- Card 5 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-3 reveal-on-scroll delay-200">
+                <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black">
+                    <span class="material-symbols-outlined text-[20px]">fitness_center</span>
+                </div>
+                <h3 class="font-display font-bold text-base text-black">Custom Exercises</h3>
+                <p class="text-secondary text-sm leading-relaxed">Create custom exercises with tailored rest times and notes.</p>
+            </div>
+            <!-- Card 6 -->
+            <div class="card-hover bg-white rounded-xl p-6 ambient-shadow border border-border flex flex-col gap-3 reveal-on-scroll delay-300">
+                <div class="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center text-black">
+                    <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                </div>
+                <h3 class="font-display font-bold text-base text-black">Session Notes</h3>
+                <p class="text-secondary text-sm leading-relaxed">Record RPE, joint feel, or equipment adjustments right mid-workout.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stat Band -->
+    <section id="stat-band" class="bg-[#1b1b1b] text-white rounded-3xl py-14 px-8 w-full shadow-xl my-4 reveal-on-scroll">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+            <div class="flex flex-col gap-1">
+                <div id="stat-1" class="font-display font-extrabold text-4xl sm:text-5xl text-white" data-target="24.5" data-decimals="1">0.0</div>
+                <div class="text-sm font-semibold text-[#c6c6c6]">tons logged</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div id="stat-2" class="font-display font-extrabold text-4xl sm:text-5xl text-white" data-target="12" data-decimals="0">0</div>
+                <div class="text-sm font-semibold text-[#c6c6c6]">days active (Current Streak)</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div id="stat-3" class="font-display font-extrabold text-4xl sm:text-5xl text-white" data-target="3" data-decimals="0">0</div>
+                <div class="text-sm font-semibold text-[#c6c6c6]">new PRs (This Week)</div>
+            </div>
+        </div>
+    </section>
+
+
+
+</main>
+
+<!-- Footer -->
+<footer id="footer" class="w-full bg-[#f9f9f9] border-t border-border py-12 mt-12">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-secondary">
+        <div class="font-display font-bold text-base text-black">Overload</div>
+        <div class="flex items-center gap-8 font-medium">
+            <a href="#features" class="hover:text-black transition-colors">Features</a>
+            <a href="#how-it-works" class="hover:text-black transition-colors">How it Works</a>
+
+        </div>
+        <div class="text-xs text-muted">
+            © 2026 Overload. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+<script>
+    // ── High-Performance Physics & Animations ──
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // 1. Intersection Observer for Smooth Scroll Reveals
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
+
+    // 2. Interactive Hero Phones Parallax
+    const heroArea = document.getElementById('hero-phones-area');
+    if (heroArea && !isReducedMotion && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        const leftPhone = heroArea.querySelector('.phone-left');
+        const centerPhone = heroArea.querySelector('.phone-center');
+        const rightPhone = heroArea.querySelector('.phone-right');
+
+        let targetX = 0, targetY = 0;
+        let currX = 0, currY = 0;
+        let isHovered = false;
+
+        heroArea.addEventListener('mousemove', (e) => {
+            const rect = heroArea.getBoundingClientRect();
+            const relX = (e.clientX - rect.left) / rect.width - 0.5;
+            const relY = (e.clientY - rect.top) / rect.height - 0.5;
+            targetX = relX * 2; // -1 to 1
+            targetY = relY * 2; // -1 to 1
+            isHovered = true;
+        });
+
+        heroArea.addEventListener('mouseleave', () => {
+            targetX = 0;
+            targetY = 0;
+            isHovered = false;
+        });
+
+        const updateParallax = () => {
+            currX += (targetX - currX) * 0.1;
+            currY += (targetY - currY) * 0.1;
+
+            if (centerPhone) {
+                const rotX = -currY * 6;
+                const rotY = currX * 8;
+                centerPhone.style.transform = `translate3d(${currX * 12}px, ${currY * 12}px, 0) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale(${isHovered ? 1.08 : 1.05})`;
+            }
+            if (leftPhone) {
+                leftPhone.style.transform = `translate3d(${currX * -18}px, ${currY * 16}px, 0) rotate(${-6 + currX * 3}deg) scale(${isHovered ? 1.04 : 1})`;
+            }
+            if (rightPhone) {
+                rightPhone.style.transform = `translate3d(${currX * 18}px, ${currY * 16}px, 0) rotate(${6 + currX * 3}deg) scale(${isHovered ? 1.04 : 1})`;
+            }
+            requestAnimationFrame(updateParallax);
+        };
+        requestAnimationFrame(updateParallax);
+    }
+
+    // 3. Interactive Chart Bar Growth & Tooltip
+    const chartArea = document.getElementById('chart-area');
+    if (chartArea) {
+        const bars = chartArea.querySelectorAll('.chart-bar');
+        const tooltip = document.getElementById('chart-tooltip');
+        const tooltipMonth = document.getElementById('tooltip-month');
+        const tooltipVal = document.getElementById('tooltip-val');
+
+        const chartObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    bars.forEach((bar, idx) => {
+                        setTimeout(() => bar.classList.add('animated'), isReducedMotion ? 0 : idx * 50 + 80);
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.3 });
+        chartObserver.observe(chartArea);
+
+        bars.forEach(bar => {
+            bar.addEventListener('mouseenter', () => {
+                const month = bar.getAttribute('data-month');
+                const rm = bar.getAttribute('data-rm');
+                if (tooltipMonth && month) tooltipMonth.textContent = `ESTIMATED 1RM — ${month}`;
+                if (tooltipVal && rm) tooltipVal.textContent = rm;
+            });
+        });
+    }
+
+    // 4. Live Community PR Feed Ticker
+    const livePrText = document.getElementById('live-pr-text');
+    if (livePrText && !isReducedMotion) {
+        const prEvents = [
+            "New PR — 105kg × 8 Bench Press",
+            "JD unlocked 140kg × 3 Squat PR",
+            "MK smashed 85kg × 6 Overhead Press",
+            "AL hit 200kg × 1 Deadlift PR",
+            "SK achieved 115kg × 5 Barbell Row PR"
+        ];
+        let prIdx = 0;
+        setInterval(() => {
+            prIdx = (prIdx + 1) % prEvents.length;
+            livePrText.textContent = prEvents[prIdx];
+        }, 3800);
+    }
+
+    // 5. Animated Counter with Easing & Pulse
+    const animateValue = (id, start, end, duration, decimals) => {
+        const obj = document.getElementById(id);
+        if (!obj) return;
+        if (isReducedMotion) {
+            obj.innerHTML = end.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            return;
+        }
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const easedProgress = 1 - Math.pow(1 - progress, 4); // Quart ease-out
+            const current = start + (end - start) * easedProgress;
+            obj.innerHTML = current.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                obj.innerHTML = end.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+                obj.style.transition = 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                obj.style.transform = 'scale(1.05)';
+                setTimeout(() => { obj.style.transform = 'scale(1)'; }, 200);
+            }
+        };
+        window.requestAnimationFrame(step);
+    };
+
+    const statObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateValue('stat-1', 0, 24.5, 1800, 1);
+                animateValue('stat-2', 0, 12, 1600, 0);
+                animateValue('stat-3', 0, 3, 1400, 0);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.4 });
+
+    const statBand = document.getElementById('stat-band');
+    if (statBand) statObserver.observe(statBand);
+
+    // 6. Interactive Mock Tab Switcher
+    window.switchMockTab = function(tabName) {
+        // Hide all mock tab content panels
+        document.querySelectorAll('.mock-tab-content').forEach(el => {
+            el.classList.add('hidden');
+        });
+        
+        // Show selected tab content panel
+        const activeTab = document.getElementById(`mock-tab-${tabName}`);
+        if (activeTab) {
+            activeTab.classList.remove('hidden');
+        }
+
+        // Reset nav button styling to inactive
+        const buttons = document.querySelectorAll('.mock-nav-btn');
+        buttons.forEach(btn => {
+            btn.className = 'mock-nav-btn text-left px-3 py-2.5 rounded-xl text-secondary font-medium text-sm flex items-center gap-3 hover:bg-surface-low transition-all hover:translate-x-1';
+        });
+
+        // Set the active styling on clicked button
+        const clickedBtn = Array.from(buttons).find(b => b.getAttribute('onclick').includes(tabName));
+        if (clickedBtn) {
+            clickedBtn.className = 'mock-nav-btn text-left px-3 py-2.5 rounded-xl bg-black text-white font-semibold text-sm flex items-center gap-3 transition-transform hover:translate-x-1';
+        }
+    };
+
+    // 7. Simulated Active Workout Timer
+    const timerEl = document.getElementById('mock-timer');
+    if (timerEl) {
+        let sec = 14 * 60 + 32;
+        setInterval(() => {
+            sec++;
+            const hours = Math.floor(sec / 3600);
+            const mins = Math.floor((sec % 3600) / 60);
+            const secs = sec % 60;
+            timerEl.textContent = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }, 1000);
+    }
+
+
+</script>
+</body>
+</html>

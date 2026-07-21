@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress — Overload</title>
+    <meta name="description" content="Track your progressive overload with charts and personal records.">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
+</head>
+<body class="bg-[#f9f9f9] text-[#1b1b1b] min-h-screen font-['Hanken_Grotesk'] overflow-x-hidden">
+    <!-- Main Content Canvas -->
+    <main class="w-full md:w-[calc(100%-16rem)] md:ml-64 p-5 md:p-10 lg:p-12 min-h-screen">
+        <div class="max-w-[1280px] mx-auto flex flex-col gap-8">
+            <!-- Header Section -->
+            <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 animate-fade-in-up">
+                <div>
+                    <h1 class="font-['Plus_Jakarta_Sans'] text-3xl md:text-4xl font-extrabold text-black tracking-tight">Progress Tracking</h1>
+                    <p class="font-medium text-sm text-[#5d5f5d] mt-1">Analyze estimated 1RM trajectories, volume surges, and all-time personal records.</p>
+                </div>
+
+                <!-- Exercise Selector -->
+                <div class="w-full sm:w-72 relative">
+                    <select class="w-full appearance-none bg-white border border-[#e2e2e2] rounded-full py-3.5 pl-5 pr-10 text-sm font-bold text-black focus:ring-2 focus:ring-black focus:border-black shadow-sm cursor-pointer transition-all" id="exercise-select" onchange="loadProgress()">
+                        <option value="">— Select an exercise —</option>
+                    </select>
+                </div>
+            </header>
+
+            <!-- Main Progress Content Container -->
+            <div id="progress-content" class="hidden flex flex-col gap-8 animate-fade-in-up animation-delay-100">
+                <!-- Chart Section -->
+                <section class="bg-white rounded-3xl p-6 md:p-8 border border-[#e2e2e2] shadow-sm flex flex-col gap-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#eeeeee]">
+                        <div>
+                            <span class="text-xs font-bold text-[#848484] uppercase tracking-wider">Performance Trajectory</span>
+                            <h2 class="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold text-black" id="chart-title">Exercise Progress</h2>
+                        </div>
+
+                        <!-- Chart Tabs -->
+                        <div class="flex p-1 bg-[#f3f3f3] rounded-xl border border-[#eeeeee] self-start sm:self-center">
+                            <button type="button" class="tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm" onclick="switchChart('weight', this)">Weight</button>
+                            <button type="button" class="tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black" onclick="switchChart('volume', this)">Volume</button>
+                            <button type="button" class="tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black" onclick="switchChart('maxReps', this)">Best Reps</button>
+                        </div>
+                    </div>
+
+                    <!-- Canvas -->
+                    <div class="relative h-[320px] w-full">
+                        <canvas id="progress-chart"></canvas>
+                    </div>
+                </section>
+
+                <!-- PR Cards Row -->
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Weight PR -->
+                    <div class="bg-white p-6 rounded-2xl border border-[#e2e2e2] shadow-sm flex flex-col gap-4 relative overflow-hidden group">
+                        <div class="absolute -right-8 -top-8 w-32 h-32 bg-[#0d9488]/10 rounded-full blur-2xl group-hover:bg-[#0d9488]/20 transition-all duration-500"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-xs uppercase tracking-wider text-[#5d5f5d]">All-Time Weight PR</span>
+                            <div class="w-9 h-9 rounded-full bg-[#0d9488]/10 text-[#0d9488] flex items-center justify-center">
+                                <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span class="font-['Plus_Jakarta_Sans'] text-4xl font-extrabold text-black" id="weight-pr">—</span>
+                        </div>
+                        <p class="text-xs font-medium text-[#848484]" id="weight-pr-detail"></p>
+                    </div>
+
+                    <!-- Volume PR -->
+                    <div class="bg-white p-6 rounded-2xl border border-[#e2e2e2] shadow-sm flex flex-col gap-4 relative overflow-hidden group">
+                        <div class="absolute -right-8 -top-8 w-32 h-32 bg-[#eab308]/10 rounded-full blur-2xl group-hover:bg-[#eab308]/20 transition-all duration-500"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-xs uppercase tracking-wider text-[#5d5f5d]">Single-Session Volume PR</span>
+                            <div class="w-9 h-9 rounded-full bg-[#eab308]/10 text-[#eab308] flex items-center justify-center">
+                                <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span class="font-['Plus_Jakarta_Sans'] text-4xl font-extrabold text-black" id="volume-pr">—</span>
+                        </div>
+                        <p class="text-xs font-medium text-[#848484]" id="volume-pr-detail"></p>
+                    </div>
+                </section>
+
+                <!-- PR History Table -->
+                <section class="bg-white rounded-3xl p-6 md:p-8 border border-[#e2e2e2] shadow-sm flex flex-col gap-4">
+                    <h3 class="font-['Plus_Jakarta_Sans'] text-xl font-bold text-black">Historical Sessions Log</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Max Weight (kg)</th>
+                                    <th>Max Reps</th>
+                                    <th>Est. 1RM</th>
+                                    <th>Session Volume</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pr-table-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- No Exercise Selected Empty State -->
+            <div id="no-exercise" class="bg-white rounded-2xl p-16 text-center border border-[#e2e2e2] shadow-sm flex flex-col items-center gap-4 animate-fade-in-up">
+                <div class="w-16 h-16 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#848484]">
+                    <span class="material-symbols-outlined text-3xl">leaderboard</span>
+                </div>
+                <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-black">Select an exercise above</h3>
+                <p class="text-sm text-[#5d5f5d] max-w-md">Choose any exercise from the dropdown menu to inspect its historical strength progression curves and personal records.</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+        requireAuth();
+
+        let chart = null;
+        let historyData = [];
+        let currentChartType = 'weight';
+
+        (async () => {
+            try {
+                const exercises = await API.get('/api/exercises');
+                const select = document.getElementById('exercise-select');
+                // API.get resolves to null on an empty body — don't assume a list.
+                if (!Array.isArray(exercises)) throw new Error('Unexpected response from /api/exercises');
+                exercises.forEach(e => {
+                    select.innerHTML += `<option value="${e.id}">${e.name} (${e.muscleGroup || 'General'})</option>`;
+                });
+            } catch (err) {
+                console.error('Failed to load exercises for progress:', err);
+                showToast(err.message || 'Failed to load exercises', 'error');
+            }
+        })();
+
+        async function loadProgress() {
+            const exerciseId = document.getElementById('exercise-select').value;
+            const select = document.getElementById('exercise-select');
+            const exText = select.options[select.selectedIndex].text.split(' (')[0];
+
+            if (!exerciseId) {
+                document.getElementById('progress-content').classList.add('hidden');
+                document.getElementById('no-exercise').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('chart-title').textContent = `${exText} Progression`;
+            document.getElementById('progress-content').classList.remove('hidden');
+            document.getElementById('no-exercise').classList.add('hidden');
+
+            try {
+                historyData = await API.get(`/api/exercises/${exerciseId}/history`);
+                if (!Array.isArray(historyData)) historyData = [];
+                updateChart();
+                updatePRs();
+                updateTable();
+            } catch (err) {
+                console.error('Failed to load exercise history data:', err);
+                showToast(err.message || 'Failed to load exercise history data', 'error');
+            }
+        }
+
+        function switchChart(type, btn) {
+            currentChartType = type;
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.className = 'tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black';
+            });
+            if (btn) btn.className = 'tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm';
+            updateChart();
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('progress-chart');
+            if (chart) chart.destroy();
+
+            if (historyData.length === 0) {
+                return;
+            }
+
+            const labels = historyData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+
+            let data, label, color;
+            if (currentChartType === 'weight') {
+                data = historyData.map(d => d.maxWeight);
+                label = 'Max Weight (kg)';
+                color = '#000000';
+            } else if (currentChartType === 'volume') {
+                data = historyData.map(d => d.totalVolume);
+                label = 'Total Volume (kg)';
+                color = '#0d9488';
+            } else {
+                data = historyData.map(d => d.maxReps);
+                label = 'Best Reps';
+                color = '#eab308';
+            }
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label,
+                        data,
+                        borderColor: color,
+                        backgroundColor: currentChartType === 'weight' ? 'rgba(0,0,0,0.04)' : currentChartType === 'volume' ? 'rgba(13,148,136,0.06)' : 'rgba(234,179,8,0.06)',
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1b1b1b',
+                            titleFont: { family: 'Plus Jakarta Sans', weight: 'bold' },
+                            bodyFont: { family: 'Hanken Grotesk' },
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Hanken Grotesk', size: 12 }, color: '#848484' }
+                        },
+                        y: {
+                            grid: { color: '#eeeeee' },
+                            ticks: { font: { family: 'Hanken Grotesk', size: 12 }, color: '#848484' },
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePRs() {
+            if (historyData.length === 0) {
+                document.getElementById('weight-pr').textContent = '—';
+                document.getElementById('weight-pr-detail').textContent = 'No records yet';
+                document.getElementById('volume-pr').textContent = '—';
+                document.getElementById('volume-pr-detail').textContent = 'No records yet';
+                return;
+            }
+
+            let bestWeight = { maxWeight: 0 };
+            let bestVol = { totalVolume: 0 };
+            for (const d of historyData) {
+                if (d.maxWeight > bestWeight.maxWeight) bestWeight = d;
+                if (d.totalVolume > bestVol.totalVolume) bestVol = d;
+            }
+
+            document.getElementById('weight-pr').textContent = bestWeight.maxWeight ? `${bestWeight.maxWeight} kg` : '—';
+            document.getElementById('weight-pr-detail').textContent = bestWeight.date ? `Set on ${new Date(bestWeight.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : '';
+
+            document.getElementById('volume-pr').textContent = bestVol.totalVolume ? `${bestVol.totalVolume.toLocaleString()} kg` : '—';
+            document.getElementById('volume-pr-detail').textContent = bestVol.date ? `Set on ${new Date(bestVol.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : '';
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('pr-table-body');
+            if (historyData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-sm text-[#848484]">No history recorded for this exercise yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = [...historyData].reverse().map(d => {
+                const est1rm = Math.round(d.maxWeight * (1 + d.maxReps / 30));
+                return `
+                    <tr>
+                        <td class="font-bold text-black">${new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                        <td class="font-extrabold text-black">${d.maxWeight} kg</td>
+                        <td class="font-bold text-black">${d.maxReps} reps</td>
+                        <td class="text-xs font-semibold text-[#0d9488]">${est1rm} kg</td>
+                        <td class="font-semibold text-black">${d.totalVolume.toLocaleString()} kg</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

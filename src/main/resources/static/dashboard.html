@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Overload</title>
+    <meta name="description" content="Your workout dashboard — streaks, recent sessions, and quick actions.">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
+</head>
+<body class="bg-[#f9f9f9] text-[#1b1b1b] min-h-screen font-['Hanken_Grotesk'] overflow-x-hidden">
+    <!-- Main Content Canvas -->
+    <main class="w-full md:w-[calc(100%-16rem)] md:ml-64 p-5 md:p-10 lg:p-12 min-h-screen">
+        <div class="max-w-[1280px] mx-auto flex flex-col gap-8">
+            <!-- Header Section -->
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-fade-in-up">
+                <div>
+                    <p class="font-semibold text-sm text-[#5d5f5d] mb-1" id="current-date">Today</p>
+                    <h2 class="font-['Plus_Jakarta_Sans'] text-3xl md:text-4xl font-extrabold text-black tracking-tight" id="greeting">Welcome back</h2>
+                </div>
+                <a href="/workout.html" class="bg-black text-white px-8 py-4 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-[#303030] hover:-translate-y-1 active:scale-[0.97] transition-all duration-200 shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                    <span>Start Workout</span>
+                </a>
+            </header>
+
+            <!-- KPI Grid -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
+                <!-- Streak -->
+                <div class="bg-white p-6 rounded-2xl flex flex-col gap-4 relative overflow-hidden group animate-fade-in-up animation-delay-100 border border-[#e2e2e2] card-hover">
+                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-[#dc2626]/10 rounded-full blur-2xl group-hover:bg-[#dc2626]/20 transition-all duration-500"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-sm text-[#5d5f5d]">Current Streak</span>
+                        <div class="w-8 h-8 rounded-full bg-[#dc2626]/10 text-[#dc2626] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="font-['Plus_Jakarta_Sans'] text-4xl font-extrabold text-black" id="streak-count"><span class="skeleton inline-block w-14 h-9 rounded-md"></span></span>
+                        <span class="font-medium text-xs text-[#5d5f5d]">days</span>
+                    </div>
+                    <div class="flex gap-1.5 mt-2">
+                        <div class="h-2 flex-1 bg-[#dc2626] rounded-sm"></div>
+                        <div class="h-2 flex-1 bg-[#dc2626] rounded-sm"></div>
+                        <div class="h-2 flex-1 bg-[#dc2626] rounded-sm"></div>
+                        <div class="h-2 flex-1 bg-[#f3f3f3] rounded-sm"></div>
+                        <div class="h-2 flex-1 bg-[#f3f3f3] rounded-sm"></div>
+                    </div>
+                </div>
+
+                <!-- Total Sessions -->
+                <div class="bg-white p-6 rounded-2xl flex flex-col gap-4 relative overflow-hidden group animate-fade-in-up animation-delay-200 border border-[#e2e2e2] card-hover">
+                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-[#0d9488]/10 rounded-full blur-2xl group-hover:bg-[#0d9488]/20 transition-all duration-500"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-sm text-[#5d5f5d]">Total Sessions</span>
+                        <div class="w-8 h-8 rounded-full bg-[#0d9488]/10 text-[#0d9488] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="font-['Plus_Jakarta_Sans'] text-4xl font-extrabold text-black" id="total-sessions"><span class="skeleton inline-block w-14 h-9 rounded-md"></span></span>
+                        <span class="font-medium text-xs text-[#5d5f5d]">workouts</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-[#f3f3f3] rounded-full overflow-hidden mt-3">
+                        <div class="h-full bg-[#0d9488] w-[85%] rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Last Workout -->
+                <div class="bg-white p-6 rounded-2xl flex flex-col gap-4 relative overflow-hidden group animate-fade-in-up animation-delay-300 border border-[#e2e2e2] card-hover">
+                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-[#eab308]/10 rounded-full blur-2xl group-hover:bg-[#eab308]/20 transition-all duration-500"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-sm text-[#5d5f5d]">Last Workout</span>
+                        <div class="w-8 h-8 rounded-full bg-[#eab308]/10 text-[#eab308] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 min-h-[36px] items-center">
+                        <span class="font-['Plus_Jakarta_Sans'] text-3xl font-extrabold text-black" id="last-workout"><span class="skeleton inline-block w-24 h-8 rounded-md"></span></span>
+                    </div>
+                    <p class="font-medium text-xs text-[#848484] mt-2">Consistent progress</p>
+                </div>
+
+                <!-- Quick Actions / Next Goal -->
+                <div class="bg-white p-6 rounded-2xl flex flex-col gap-4 relative overflow-hidden group animate-fade-in-up animation-delay-400 border border-[#e2e2e2] card-hover">
+                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-[#16a34a]/10 rounded-full blur-2xl group-hover:bg-[#16a34a]/20 transition-all duration-500"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-sm text-[#5d5f5d]">Quick Access</span>
+                        <div class="w-8 h-8 rounded-full bg-[#16a34a]/10 text-[#16a34a] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <a href="/routines.html" class="bg-[#f3f3f3] hover:bg-black hover:text-white active:scale-[0.97] transition-all p-2.5 rounded-xl text-center text-xs font-semibold text-[#1b1b1b]">
+                            Routines
+                        </a>
+                        <a href="/progress.html" class="bg-[#f3f3f3] hover:bg-black hover:text-white active:scale-[0.97] transition-all p-2.5 rounded-xl text-center text-xs font-semibold text-[#1b1b1b]">
+                            Charts
+                        </a>
+                    </div>
+                    <a href="/history.html" class="text-xs font-semibold text-[#0d9488] hover:underline flex items-center gap-1 mt-1">
+                        <span>View complete history</span>
+                        <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Anatomical Muscle Heatmap & Volume Distribution -->
+            <section class="mt-8 bg-white rounded-2xl p-6 md:p-8 border border-[#e2e2e2] shadow-sm animate-fade-in-up animation-delay-300">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-[#eeeeee]">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[#0d9488] text-2xl">vital_signs</span>
+                            <h3 class="font-['Plus_Jakarta_Sans'] text-2xl font-bold text-black">Anatomical Muscle Heatmap</h3>
+                        </div>
+                        <p class="text-sm text-[#5d5f5d] mt-1">Volume distribution and activation levels across your muscle groups</p>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs font-semibold">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Hot (≥ 20%)</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Active (≥ 8%)</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-gray-300 inline-block"></span> Lagging</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <!-- Futuristic 3D/2D Cyber-Anatomical Physique -->
+                    <div class="lg:col-span-5 flex justify-center py-2">
+                        <div class="w-full bg-[#0d1015] text-white rounded-3xl p-5 md:p-6 border border-[#232a36] flex flex-col items-center gap-5 shadow-2xl relative overflow-hidden">
+                            <!-- Top Thumbnail View Switcher (Like Image 1) -->
+                            <div class="flex items-center justify-between w-full pb-4 border-b border-[#1f2633]">
+                                <span class="text-xs font-extrabold uppercase tracking-widest text-[#8490a0] flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span> Cyber-Anatomy
+                                </span>
+                                <div class="flex items-center gap-2 bg-[#161b24] p-1 rounded-2xl border border-[#262f3f]">
+                                    <button id="btn-view-front" onclick="switchAnatomicalView('front')" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 to-emerald-500 text-black shadow-lg transition-all">
+                                        <span class="material-symbols-outlined text-[16px]">person</span> Anterior
+                                    </button>
+                                    <button id="btn-view-back" onclick="switchAnatomicalView('back')" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8490a0] hover:text-white transition-all">
+                                        <span class="material-symbols-outlined text-[16px]">accessibility_new</span> Posterior
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Main Cyber Body Layout with Side Check Pills (Like Image 2) -->
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center w-full">
+                                <!-- Side Muscle Check Pills (Like Image 2) -->
+                                <div class="md:col-span-4 flex flex-row md:flex-col gap-1.5 overflow-x-auto md:overflow-visible pb-2 md:pb-0" id="heatmap-side-pills">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+
+                                <!-- High-Res Cyber SVG Container -->
+                                <div class="md:col-span-8 flex items-center justify-center relative select-none h-[360px]" id="heatmap-svg-container">
+                                    <div class="text-xs text-[#8490a0] animate-pulse">Rendering cyber physique...</div>
+                                </div>
+                            </div>
+
+                            <!-- Interactive Inspector Callout Card -->
+                            <div id="muscle-inspector" class="w-full bg-[#161b24]/90 backdrop-blur rounded-2xl p-4 border border-[#283244] flex flex-col gap-1.5 text-left transition-all shadow-inner">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-['Plus_Jakarta_Sans'] font-extrabold text-sm text-white uppercase tracking-wider flex items-center gap-2" id="inspector-title">
+                                        <span class="material-symbols-outlined text-teal-400 text-lg">bolt</span> Hover / Tap Muscle
+                                    </span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide bg-[#242c3b] text-[#a0a8b4]" id="inspector-badge">SELECT</span>
+                                </div>
+                                <p class="text-xs text-[#94a1b2] font-medium leading-relaxed" id="inspector-desc">Click any muscle group on the cyber silhouette or side pills above to inspect volume and hypertrophy priority.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Volume Distribution Breakdown -->
+                    <div class="lg:col-span-7 flex flex-col gap-4" id="heatmap-breakdown">
+                        <div class="p-6 text-center text-[#848484] text-sm font-semibold">Calculating muscle volume distribution...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Sessions Section -->
+            <section class="mt-8 animate-fade-in-up animation-delay-400">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h3 class="font-['Plus_Jakarta_Sans'] text-2xl font-bold text-black">Recent Sessions</h3>
+                        <p class="text-sm text-[#5d5f5d] mt-1">Review your latest training logs</p>
+                    </div>
+                    <a href="/history.html" class="font-semibold text-sm text-[#5d5f5d] hover:text-black transition-colors flex items-center gap-1 group">
+                        <span>View All</span>
+                        <span class="material-symbols-outlined text-sm transform group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </a>
+                </div>
+
+                <div id="recent-sessions" class="flex flex-col gap-3">
+                    <div class="bg-white rounded-2xl p-8 text-center border border-[#e2e2e2] text-[#848484]">
+                        <span class="material-symbols-outlined text-4xl mb-2 text-[#c6c6c6]">fitness_center</span>
+                        <h4 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-black">Loading sessions...</h4>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script src="/js/body-muscles.js"></script>
+    <script>
+        requireAuth();
+
+        document.getElementById('greeting').textContent = `Welcome back, ${getUsername()}`;
+        
+        // Format current date nicely
+        const now = new Date();
+        document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+        (async () => {
+            try {
+                const sessions = await API.get('/api/sessions');
+
+                // Total sessions
+                document.getElementById('total-sessions').textContent = sessions.length;
+
+                // Last workout
+                if (sessions.length > 0) {
+                    const last = new Date(sessions[0].date);
+                    document.getElementById('last-workout').textContent = last.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                } else {
+                    document.getElementById('last-workout').textContent = 'Never';
+                }
+
+                // Streak calculation
+                const streak = calculateStreak(sessions);
+                document.getElementById('streak-count').textContent = streak;
+
+                // Recent sessions (top 5)
+                const container = document.getElementById('recent-sessions');
+                if (sessions.length > 0) {
+                    container.innerHTML = sessions.slice(0, 5).map(s => `
+                        <div class="bg-white rounded-2xl p-5 border border-[#e2e2e2] hover:border-black transition-all cursor-pointer flex items-center justify-between group shadow-sm hover:shadow-md" onclick="location.href='/history.html'">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-[#f3f3f3] group-hover:bg-black group-hover:text-white transition-colors flex items-center justify-center text-black flex-shrink-0">
+                                    <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-['Plus_Jakarta_Sans'] font-bold text-base text-black group-hover:text-[#0d9488] transition-colors">${s.routineName || 'Freestyle Workout'}</h4>
+                                        ${s.dayOfWeek ? `<span class="px-2.5 py-0.5 rounded-full bg-[#f3f3f3] text-[#5d5f5d] text-xs font-semibold">${s.dayOfWeek}</span>` : ''}
+                                    </div>
+                                    <p class="text-xs text-[#5d5f5d] line-clamp-1">${s.notes || 'No session notes recorded'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right hidden sm:block">
+                                    <span class="block font-['Plus_Jakarta_Sans'] font-bold text-sm text-black">${new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                    <span class="block text-xs text-[#848484]">${new Date(s.date).getFullYear()}</span>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-[#f3f3f3] group-hover:bg-black group-hover:text-white transition-colors flex items-center justify-center text-[#5d5f5d]">
+                                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="bg-white rounded-2xl p-12 text-center border border-[#e2e2e2] flex flex-col items-center gap-3">
+                            <div class="w-16 h-16 rounded-full bg-[#f3f3f3] flex items-center justify-center text-[#848484]">
+                                <span class="material-symbols-outlined text-3xl">fitness_center</span>
+                            </div>
+                            <h4 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-black">No sessions yet</h4>
+                            <p class="text-sm text-[#5d5f5d] max-w-sm">Start your first workout session to track your progressive overload and streaks here.</p>
+                            <a href="/workout.html" class="mt-2 bg-black text-white px-6 py-3 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity">Start First Workout</a>
+                        </div>
+                    `;
+                }
+
+                // Calculate Muscle Heatmap from sessions
+                try {
+                    // Don't swallow a failure into an empty list — an all-zero heatmap
+                    // looks like real data. API.get resolves to null on an empty body.
+                    const exercises = await API.get('/api/exercises');
+                    if (!Array.isArray(exercises)) throw new Error('Unexpected response from /api/exercises');
+                    const exMap = {};
+                    exercises.forEach(e => {
+                        exMap[e.id] = e.muscleGroup || 'Other';
+                        exMap[e.name] = e.muscleGroup || 'Other';
+                    });
+
+                    const targetGroups = ['Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core'];
+                    const volumes = { 'Chest': 0, 'Back': 0, 'Shoulders': 0, 'Legs': 0, 'Arms': 0, 'Core': 0 };
+                    let totalVolumeAll = 0;
+
+                    sessions.forEach(s => {
+                        if (s.sets && Array.isArray(s.sets)) {
+                            s.sets.forEach(set => {
+                                const mg = exMap[set.exerciseId] || exMap[set.exerciseName] || 'Other';
+                                const vol = (set.weight || 0) * (set.reps || 0);
+                                if (vol > 0) {
+                                    totalVolumeAll += vol;
+                                    if (mg.includes('Leg') || mg.includes('Quad') || mg.includes('Ham') || mg.includes('Calf')) {
+                                        volumes['Legs'] += vol;
+                                    } else if (mg.includes('Arm') || mg.includes('Bicep') || mg.includes('Tricep')) {
+                                        volumes['Arms'] += vol;
+                                    } else if (mg.includes('Shoulder') || mg.includes('Deltoid')) {
+                                        volumes['Shoulders'] += vol;
+                                    } else if (mg.includes('Back') || mg.includes('Lat') || mg.includes('Trap')) {
+                                        volumes['Back'] += vol;
+                                    } else if (mg.includes('Chest') || mg.includes('Pec')) {
+                                        volumes['Chest'] += vol;
+                                    } else {
+                                        volumes['Core'] += vol;
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    const svgContainer = document.getElementById('heatmap-svg-container');
+                    const breakdownEl = document.getElementById('heatmap-breakdown');
+
+                    if (svgContainer && breakdownEl) {
+                        const icons = {
+                            'Chest': 'shield',
+                            'Back': 'accessibility_new',
+                            'Shoulders': 'fitness_center',
+                            'Legs': 'directions_walk',
+                            'Arms': 'sports_martial_arts',
+                            'Core': 'self_improvement'
+                        };
+
+                        cachedVolumes = volumes;
+                        cachedTotalVol = totalVolumeAll;
+                        cachedIcons = icons;
+                        window.cachedVolumes = volumes;
+                        window.cachedTotalVol = totalVolumeAll;
+                        window.cachedIcons = icons;
+
+                        renderAnatomicalFigure();
+
+                        breakdownEl.innerHTML = targetGroups.map(g => {
+                            const vol = volumes[g];
+                            const pct = totalVolumeAll > 0 ? Math.round((vol / totalVolumeAll) * 100) : 0;
+                            let color = '#d1d5db'; // Gray
+                            if (pct >= 20) color = '#10b981'; // Emerald
+                            else if (pct >= 8) color = '#f59e0b'; // Amber
+
+                            return `
+                                <div class="flex flex-col gap-1.5 cursor-pointer hover:bg-[#f9f9f9] p-2 rounded-xl transition-colors" onclick="inspectMuscle('${g}')">
+                                    <div class="flex justify-between items-center text-xs font-bold">
+                                        <span class="flex items-center gap-2 text-black">
+                                            <span class="material-symbols-outlined text-[16px]" style="color: ${color === '#d1d5db' ? '#848484' : color}; font-variation-settings: 'FILL' 1;">${icons[g]}</span>
+                                            ${g}
+                                        </span>
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-[#5d5f5d] font-medium">${vol.toLocaleString()} kg total</span>
+                                            <span class="font-mono px-2 py-0.5 rounded bg-[#f3f3f3] text-black">${pct}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="h-2.5 w-full bg-[#f3f3f3] rounded-full overflow-hidden">
+                                        <div class="h-full rounded-full transition-all duration-700" style="width: ${pct}%; background-color: ${color};"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        // Auto inspect the highest volume group or Chest initially
+                        let topGroup = 'Chest';
+                        let maxV = -1;
+                        targetGroups.forEach(g => {
+                            if (volumes[g] > maxV) { maxV = volumes[g]; topGroup = g; }
+                        });
+                        inspectMuscle(topGroup);
+                    }
+                } catch (e) {
+                    // Never leave the placeholders up forever — that reads as an
+                    // infinite load. Say what failed instead.
+                    console.error('Heatmap calculation error:', e);
+                    const svgContainer = document.getElementById('heatmap-svg-container');
+                    const breakdownEl = document.getElementById('heatmap-breakdown');
+                    if (svgContainer) svgContainer.innerHTML =
+                        '<div class="text-xs text-[#8490a0]">Could not render the muscle heatmap.</div>';
+                    if (breakdownEl) breakdownEl.innerHTML =
+                        '<div class="p-6 text-center text-[#848484] text-sm font-semibold">Could not calculate volume distribution.</div>';
+                }
+            } catch (err) {
+                console.error('Dashboard load failed:', err);
+                document.getElementById('recent-sessions').innerHTML = `
+                    <div class="bg-white rounded-2xl p-6 text-center border border-red-200 text-red-600 font-semibold">
+                        Failed to load dashboard data.
+                    </div>
+                `;
+            }
+        })();
+
+        let currentAnatomicalView = 'front';
+        let cachedVolumes = {};
+        let cachedTotalVol = 0;
+        let cachedIcons = {};
+        let activeSelectedMuscle = 'Chest';
+
+        const muscleGroupMap = {
+            // Shoulders
+            'shoulder-front-left': 'Shoulders', 'shoulder-side-left': 'Shoulders',
+            'shoulder-front-right': 'Shoulders', 'shoulder-side-right': 'Shoulders',
+            'deltoid-rear-left': 'Shoulders', 'deltoid-rear-right': 'Shoulders',
+            // Chest
+            'chest-upper-left': 'Chest', 'chest-lower-left': 'Chest',
+            'chest-upper-right': 'Chest', 'chest-lower-right': 'Chest',
+            // Arms
+            'biceps-left': 'Arms', 'biceps-right': 'Arms',
+            'triceps-long-left': 'Arms', 'triceps-lateral-left': 'Arms',
+            'triceps-long-right': 'Arms', 'triceps-lateral-right': 'Arms',
+            'forearm-left': 'Arms', 'forearm-right': 'Arms',
+            'forearm-flexors-left': 'Arms', 'forearm-extensors-left': 'Arms',
+            'forearm-flexors-right': 'Arms', 'forearm-extensors-right': 'Arms',
+            // Core
+            'abs-upper-left': 'Core', 'abs-upper-right': 'Core',
+            'abs-lower-left': 'Core', 'abs-lower-right': 'Core',
+            'obliques-left': 'Core', 'obliques-right': 'Core',
+            'serratus-anterior-left': 'Core', 'serratus-anterior-right': 'Core',
+            // Back
+            'traps-upper-left': 'Back', 'traps-mid-left': 'Back', 'traps-lower-left': 'Back',
+            'traps-upper-right': 'Back', 'traps-mid-right': 'Back', 'traps-lower-right': 'Back',
+            'lats-upper-left': 'Back', 'lats-mid-left': 'Back', 'lats-lower-left': 'Back',
+            'lats-upper-right': 'Back', 'lats-mid-right': 'Back', 'lats-lower-right': 'Back',
+            'lower-back-erectors-left': 'Back', 'lower-back-ql-left': 'Back',
+            'lower-back-erectors-right': 'Back', 'lower-back-ql-right': 'Back',
+            // Legs
+            'quads-left': 'Legs', 'quads-right': 'Legs',
+            'hamstrings-medial-left': 'Legs', 'hamstrings-lateral-left': 'Legs',
+            'hamstrings-medial-right': 'Legs', 'hamstrings-lateral-right': 'Legs',
+            'gluteus-medius-left': 'Legs', 'gluteus-maximus-left': 'Legs',
+            'gluteus-medius-right': 'Legs', 'gluteus-maximus-right': 'Legs',
+            'calves-gastroc-medial-left': 'Legs', 'calves-gastroc-lateral-left': 'Legs',
+            'calves-soleus-left': 'Legs',
+            'calves-gastroc-medial-right': 'Legs', 'calves-gastroc-lateral-right': 'Legs',
+            'calves-soleus-right': 'Legs',
+            'adductors-left': 'Legs', 'adductors-right': 'Legs',
+            'tibialis-anterior-left': 'Legs', 'tibialis-anterior-right': 'Legs',
+            'hip-flexor-left': 'Legs', 'hip-flexor-right': 'Legs'
+        };
+
+        function getBodyState() {
+            const bodyState = {};
+            const volumes = cachedVolumes || {};
+            const totalVolumeAll = cachedTotalVol || 0;
+
+            const parentGroupPcts = {
+                'Chest': totalVolumeAll > 0 ? ((volumes['Chest'] || 0) / totalVolumeAll) * 100 : 0,
+                'Back': totalVolumeAll > 0 ? ((volumes['Back'] || 0) / totalVolumeAll) * 100 : 0,
+                'Shoulders': totalVolumeAll > 0 ? ((volumes['Shoulders'] || 0) / totalVolumeAll) * 100 : 0,
+                'Legs': totalVolumeAll > 0 ? ((volumes['Legs'] || 0) / totalVolumeAll) * 100 : 0,
+                'Arms': totalVolumeAll > 0 ? ((volumes['Arms'] || 0) / totalVolumeAll) * 100 : 0,
+                'Core': totalVolumeAll > 0 ? ((volumes['Core'] || 0) / totalVolumeAll) * 100 : 0
+            };
+
+            BodyMuscles.MUSCLE_MAP.forEach(m => {
+                const parentGroup = muscleGroupMap[m.id] || 'Other';
+                if (parentGroup === 'Other') {
+                    bodyState[m.id] = { intensity: 0, selected: false };
+                } else {
+                    const pct = parentGroupPcts[parentGroup];
+                    let intensity = 0;
+                    if (pct >= 20) {
+                        intensity = 10;
+                    } else if (pct >= 8) {
+                        intensity = 5;
+                    } else {
+                        intensity = 0;
+                    }
+                    bodyState[m.id] = { 
+                        intensity: intensity,
+                        selected: (parentGroup === activeSelectedMuscle)
+                    };
+                }
+            });
+            return bodyState;
+        }
+
+        function switchAnatomicalView(view) {
+            currentAnatomicalView = view;
+            const btnF = document.getElementById('btn-view-front');
+            const btnB = document.getElementById('btn-view-back');
+            if (btnF && btnB) {
+                if (view === 'front') {
+                    btnF.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 to-emerald-500 text-black shadow-lg transition-all";
+                    btnB.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8490a0] hover:text-white transition-all";
+                } else {
+                    btnF.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8490a0] hover:text-white transition-all";
+                    btnB.className = "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 to-emerald-500 text-black shadow-lg transition-all";
+                }
+            }
+            renderAnatomicalFigure();
+        }
+
+        function getMuscleColorAndStatus(group) {
+            const vol = cachedVolumes[group] || 0;
+            const pct = cachedTotalVol > 0 ? (vol / cachedTotalVol) * 100 : 0;
+            const isSelected = activeSelectedMuscle === group;
+
+            if (pct >= 20) {
+                return { 
+                    status: 'HOT (≥20%)', 
+                    badgeBg: 'bg-gradient-to-r from-emerald-500/30 to-teal-500/30 text-emerald-300 border border-emerald-500/40', 
+                    desc: `Hypertrophy priority zone! Driving ${Math.round(pct)}% of total volume (${vol.toLocaleString()} kg). High activation across recent logs.` 
+                };
+            } else if (pct >= 8) {
+                return { 
+                    status: 'ACTIVE (≥8%)', 
+                    badgeBg: 'bg-gradient-to-r from-amber-500/30 to-orange-500/30 text-amber-300 border border-amber-500/40', 
+                    desc: `Balanced activation (${Math.round(pct)}% of total volume, ${vol.toLocaleString()} kg). Steady contribution to overall physique development.` 
+                };
+            } else {
+                return { 
+                    status: 'LAGGING (<8%)', 
+                    badgeBg: 'bg-[#222936] text-[#8490a0] border border-[#333d4f]', 
+                    desc: `Low volume (${Math.round(pct)}% of total, ${vol.toLocaleString()} kg). Consider targeting ${group} directly in your next session to build balanced proportions!` 
+                };
+            }
+        }
+
+        function inspectMuscle(group) {
+            activeSelectedMuscle = group;
+            const info = getMuscleColorAndStatus(group);
+            const titleEl = document.getElementById('inspector-title');
+            const badgeEl = document.getElementById('inspector-badge');
+            const descEl = document.getElementById('inspector-desc');
+            if (titleEl && badgeEl && descEl) {
+                titleEl.innerHTML = `<span class="material-symbols-outlined text-teal-400 text-lg">bolt</span> ${group}`;
+                badgeEl.textContent = info.status;
+                badgeEl.className = `px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide ${info.badgeBg}`;
+                descEl.textContent = info.desc;
+            }
+            if (window.bodyChart) {
+                window.bodyChart.update({
+                    bodyState: getBodyState()
+                });
+            }
+            renderSidePills();
+        }
+
+        function renderSidePills() {
+            const pillsContainer = document.getElementById('heatmap-side-pills');
+            if (!pillsContainer) return;
+
+            const groups = ['Shoulders', 'Chest', 'Arms', 'Back', 'Core', 'Legs'];
+            pillsContainer.innerHTML = groups.map(g => {
+                const vol = cachedVolumes[g] || 0;
+                const pct = cachedTotalVol > 0 ? (vol / cachedTotalVol) * 100 : 0;
+                const isSelected = activeSelectedMuscle === g;
+                
+                let dotColor = 'bg-gray-600';
+                let borderColor = 'border-[#232b38]';
+                let textColor = 'text-[#8490a0]';
+                let bgStyle = 'bg-[#151a23] hover:bg-[#1d2430]';
+
+                if (pct >= 20) {
+                    dotColor = 'bg-emerald-400 shadow-[0_0_8px_#10b981]';
+                    textColor = 'text-white font-extrabold';
+                    if (isSelected) {
+                        borderColor = 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
+                        bgStyle = 'bg-gradient-to-r from-emerald-950/80 to-[#151a23]';
+                    }
+                } else if (pct >= 8) {
+                    dotColor = 'bg-orange-400 shadow-[0_0_8px_#f97316]';
+                    textColor = 'text-white font-extrabold';
+                    if (isSelected) {
+                        borderColor = 'border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]';
+                        bgStyle = 'bg-gradient-to-r from-orange-950/80 to-[#151a23]';
+                    }
+                } else if (isSelected) {
+                    borderColor = 'border-teal-500/60';
+                    textColor = 'text-white font-bold';
+                    bgStyle = 'bg-[#1c2331]';
+                }
+
+                return `
+                    <button type="button" onclick="inspectMuscle('${g}')" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl border ${borderColor} ${bgStyle} transition-all duration-200 text-left shrink-0 md:shrink">
+                        <span class="flex items-center gap-2.5 text-xs ${textColor}">
+                            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
+                            ${g}
+                        </span>
+                        <span class="text-[10px] font-mono text-[#626f82] ml-2">${Math.round(pct)}%</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderAnatomicalFigure() {
+            const container = document.getElementById('heatmap-svg-container');
+            if (!container) return;
+
+            if (!window.bodyChart) {
+                // Mutate the library default intensity colors to match our theme
+                BodyMuscles.INTENSITY_COLORS[0] = '#1e293b'; // Lagging/neutral dark slate
+                // Active (1-5) -> Sleek neon orange/coral
+                BodyMuscles.INTENSITY_COLORS[1] = '#fdba74';
+                BodyMuscles.INTENSITY_COLORS[2] = '#fdba74';
+                BodyMuscles.INTENSITY_COLORS[3] = '#f97316';
+                BodyMuscles.INTENSITY_COLORS[4] = '#f97316';
+                BodyMuscles.INTENSITY_COLORS[5] = '#ea580c';
+                // Hot (6-10) -> Sleek neon emerald/green
+                BodyMuscles.INTENSITY_COLORS[6] = '#6ee7b7';
+                BodyMuscles.INTENSITY_COLORS[7] = '#6ee7b7';
+                BodyMuscles.INTENSITY_COLORS[8] = '#10b981';
+                BodyMuscles.INTENSITY_COLORS[9] = '#10b981';
+                BodyMuscles.INTENSITY_COLORS[10] = '#047857';
+
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+                    /* !important required: BodyChart sets inline height:auto/max-height:70vh,
+                       which makes the svg ~2.7x taller than the 360px container and it
+                       overflows out of the card (viewBox is 35x93 portrait). */
+                    .body-chart-svg {
+                        max-height: 328px !important; /* container 360px minus wrapper 1rem padding */
+                        width: 100% !important;
+                        height: auto !important;
+                        overflow: hidden;
+                    }
+                    .body-chart-muscle {
+                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                        filter: none !important; /* Prevent Safari SVG filter shift bug */
+                    }
+                    .body-chart-muscle:hover {
+                        filter: brightness(1.2) !important;
+                    }
+                `;
+                document.head.appendChild(styleEl);
+
+                container.innerHTML = '';
+                window.bodyChart = new BodyMuscles.BodyChart(container, {
+                    view: currentAnatomicalView === 'front' ? 'FRONT' : 'BACK',
+                    bodyState: getBodyState(),
+                    showViewLabel: false,
+                    enableTransitions: true,
+                    onMuscleClick: (id, name) => {
+                        const parentGroup = muscleGroupMap[id] || 'Other';
+                        if (parentGroup !== 'Other') {
+                            inspectMuscle(parentGroup);
+                        }
+                    }
+                });
+            } else {
+                window.bodyChart.update({
+                    view: currentAnatomicalView === 'front' ? 'FRONT' : 'BACK',
+                    bodyState: getBodyState()
+                });
+            }
+            renderSidePills();
+        }
+
+        function calculateStreak(sessions) {
+            if (sessions.length === 0) return 0;
+
+            const dates = [...new Set(sessions.map(s => s.date))].sort().reverse();
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+            if (dates[0] !== today && dates[0] !== yesterday) return 0;
+
+            let streak = 1;
+            for (let i = 1; i < dates.length; i++) {
+                const curr = new Date(dates[i - 1]);
+                const prev = new Date(dates[i]);
+                const diffDays = (curr - prev) / 86400000;
+                if (diffDays === 1) streak++;
+                else break;
+            }
+            return streak;
+        }
+    </script>
+</body>
+</html>

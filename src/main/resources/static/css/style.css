@@ -1,0 +1,380 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+/* ── Design System Variables & Base ─────────────────────────── */
+:root {
+    --bg-primary: #f9f9f9;
+    --bg-surface: #ffffff;
+    --bg-surface-low: #f3f3f3;
+    --bg-surface-high: #e8e8e8;
+    --text-primary: #1b1b1b;
+    --text-secondary: #5d5f5d;
+    --text-muted: #848484;
+    --primary: #000000;
+    --on-primary: #ffffff;
+    --accent-teal: #0d9488;
+    --accent-red: #dc2626;
+    --accent-yellow: #eab308;
+    --accent-green: #16a34a;
+    --border: #e2e2e2;
+    --border-hover: #c6c6c6;
+    --shadow-ambient: 0 4px 20px rgba(0,0,0,0.04);
+    --shadow-hover: 0 8px 30px rgba(0,0,0,0.08);
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --font-display: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Hanken Grotesk', sans-serif;
+
+    /* Custom Easings (Emil Kowalski Philosophy) */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── Reset & Base Styles ────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+/* ── Global Interactive Tactile Polish (Emil Kowalski) ─────── */
+button, .btn, a[class*="bg-black"], a[class*="rounded-full"] {
+    transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+    will-change: transform;
+}
+button:active, .btn:active, a[class*="bg-black"]:active {
+    transform: scale(0.97) !important;
+}
+
+/* ── Custom Utility & Design System Classes ─────────────────── */
+.ambient-shadow {
+    box-shadow: var(--shadow-ambient);
+}
+
+.hover-shadow {
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+    .hover-shadow:hover {
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-2px);
+    }
+}
+
+/* Fanned Cards Animation & Layout */
+.fanned-card {
+    transition: transform 300ms var(--ease-out), box-shadow 300ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+    .fanned-card:hover {
+        transform: translateY(-8px) scale(1.02) rotate(0deg) !important;
+        z-index: 10 !important;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 500ms var(--ease-out) forwards;
+}
+
+.animation-delay-100 { animation-delay: 100ms; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-300 { animation-delay: 300ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+
+/* Skeleton Shimmer Utility for Loading KPIs */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-surface-low) 25%, var(--bg-surface-high) 50%, var(--bg-surface-low) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+/* ── Toast Notification System (Origin & Hardware Accelerated) */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.toast {
+    padding: 14px 20px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: toastIn 350ms var(--ease-out), toastOut 300ms var(--ease-in-out) 3s forwards;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    transform-origin: top right;
+    will-change: transform, opacity;
+}
+.toast-info { border-left: 4px solid var(--primary); }
+.toast-success { border-left: 4px solid var(--accent-green); }
+.toast-error { border-left: 4px solid var(--accent-red); }
+.toast-pr {
+    background: #000000;
+    color: #ffffff;
+    border: 1px solid #333333;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateX(80px) scale(0.95); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toastOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+}
+
+/* ── Modal & Overlays ───────────────────────────────────────── */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.modal-overlay.active {
+    display: flex;
+    animation: fadeIn 200ms var(--ease-out);
+}
+.modal {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    animation: modalIn 250ms var(--ease-out);
+    transform-origin: center;
+}
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+.modal-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.modal-close {
+    background: var(--bg-surface-low);
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.modal-close:hover {
+    background: var(--bg-surface-high);
+    color: var(--text-primary);
+}
+.modal-close:active {
+    transform: scale(0.94);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* ── Table & Form Cleanups ──────────────────────────────────── */
+.table-wrap {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+}
+td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    transition: background-color 160ms ease;
+}
+tr:hover td {
+    background-color: var(--bg-surface-low);
+}
+
+/* Number input spin buttons */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Warm-up Calculator Visuals */
+.calc-result {
+    background: var(--bg-surface-low);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Rest Timer Fixed Bottom Bar ───────────────────────────── */
+.rest-timer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    transform: translateY(110%);
+    transition: transform 350ms var(--ease-drawer);
+}
+.rest-timer.active {
+    transform: translateY(0);
+}
+.rest-timer-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 4px;
+    transition: width 300ms linear;
+}
+
+/* ── Mandatory prefers-reduced-motion Guardrail ───────────── */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .reveal-on-scroll, .animate-fade-in-up, .animate-float, .animate-pulse-glow, .animate-spin-slow {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+    }
+}
+
+/* ── Dark Theme ─────────────────────────────────────────────
+   Everything above reads these vars, so overriding them themes the body,
+   tables, modals, toasts and skeletons for free. The page markup hardcodes
+   its colors as inline Tailwind values (bg-[#f3f3f3] etc.) instead of vars,
+   so those are remapped by class substring below — one rule per color also
+   covers its hover:/focus:/lg: variants.
+   Substring matching means a few hover-only surfaces show their
+   dark background at rest; swap the markup to bg-[var(--token)] if that
+   ever becomes visible enough to matter. */
+html[data-theme="dark"] {
+    --bg-primary: #0f1319;
+    --bg-surface: #171c24;
+    --bg-surface-low: #212732;
+    --bg-surface-high: #2b323d;
+    --text-primary: #e7eaee;
+    --text-secondary: #a4adb9;
+    --text-muted: #79828e;
+    --border: #2a303a;
+    --border-hover: #3a424e;
+    --shadow-ambient: 0 4px 20px rgba(0,0,0,0.35);
+    --shadow-hover: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+/* Components above that hardcode white */
+html[data-theme="dark"] .toast,
+html[data-theme="dark"] .modal { background: var(--bg-surface); }
+
+/* <option> doesn't inherit its parent's background, so a dark <select> can leave
+   its options light-text-on-white (invisible) in the native popup. */
+html[data-theme="dark"] select option {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+/* Inline Tailwind neutrals → dark equivalents */
+html[data-theme="dark"] [class*="bg-white"]       { background-color: var(--bg-surface) !important; }
+html[data-theme="dark"] [class*="bg-[#f9f9f9]"]   { background-color: var(--bg-primary) !important; }
+html[data-theme="dark"] [class*="bg-[#f3f3f3]"]   { background-color: var(--bg-surface-low) !important; }
+html[data-theme="dark"] [class*="bg-[#e8e8e8]"]   { background-color: var(--bg-surface-high) !important; }
+html[data-theme="dark"] [class*="bg-[#e2e2e2]"]   { background-color: var(--bg-surface-high) !important; }
+
+html[data-theme="dark"] [class*="text-black"]     { color: var(--text-primary) !important; }
+html[data-theme="dark"] [class*="text-[#1b1b1b]"] { color: var(--text-primary) !important; }
+html[data-theme="dark"] [class*="text-[#5d5f5d]"] { color: var(--text-secondary) !important; }
+html[data-theme="dark"] [class*="text-[#848484]"] { color: var(--text-muted) !important; }
+html[data-theme="dark"] [class*="text-[#c6c6c6]"] { color: #4a515c !important; }
+
+html[data-theme="dark"] [class*="border-[#e2e2e2]"] { border-color: var(--border) !important; }
+html[data-theme="dark"] [class*="border-[#eeeeee]"] { border-color: #242a33 !important; }
+html[data-theme="dark"] [class*="border-[#c6c6c6]"] { border-color: var(--border-hover) !important; }
+
+/* Primary buttons are bg-black + text-white and would vanish on a dark page,
+   so flip them to a light surface with dark content. Exact class selector,
+   NOT substring: <body> carries selection:bg-black and must not be repainted. */
+html[data-theme="dark"] .bg-black { background-color: #eef1f5 !important; }
+html[data-theme="dark"] .bg-black,
+html[data-theme="dark"] .bg-black * { color: #14171c !important; }
