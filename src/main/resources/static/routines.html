@@ -224,7 +224,14 @@
                                     ` : exs.map((ex, i) => `
                                         <tr>
                                             <td class="font-bold text-xs text-[#848484]">${i + 1}</td>
-                                            <td class="font-bold text-black">${ex.exerciseName}</td>
+                                             <td class="font-bold text-black">
+                                                 <div class="flex items-center gap-3">
+                                                     <div class="w-8 h-8 rounded-full bg-[#f3f3f3] border border-[#e2e2e2] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+                                                         ${getExerciseIconSvg(ex.exerciseName, ex.muscleGroup)}
+                                                     </div>
+                                                     <span>${ex.exerciseName}</span>
+                                                 </div>
+                                             </td>
                                             <td><span class="px-2.5 py-1 rounded-md bg-[#f3f3f3] text-[#5d5f5d] text-xs font-semibold uppercase">${ex.muscleGroup || 'General'}</span></td>
                                             <td>
                                                 <div class="inline-flex items-center gap-1.5 bg-[#f3f3f3] hover:bg-[#eaeaea] border border-[#e5e5e5] rounded-xl px-2 py-1 transition-all">

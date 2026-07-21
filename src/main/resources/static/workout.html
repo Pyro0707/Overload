@@ -406,14 +406,19 @@
 
                     <!-- Header -->
                     <div class="flex justify-between items-start pt-1">
-                        <div>
-                            <span class="px-2.5 py-0.5 rounded-md bg-[#f3f3f3] text-[#5d5f5d] text-[11px] font-bold uppercase tracking-wider">${ex.muscleGroup}</span>
-                            <h3 class="font-['Plus_Jakarta_Sans'] text-xl font-bold text-black mt-1">${ex.exerciseName}</h3>
-                            ${ex.plateau ? `
-                            <div class="mt-2 flex items-center gap-2 p-2 rounded-lg bg-[#dc2626]/10 border border-[#dc2626]/20 text-[#dc2626] text-[11px] font-bold cursor-pointer hover:bg-[#dc2626]/15 active:scale-[0.98] transition-all w-fit" onclick="applyExerciseDeload(${exIdx})">
-                                <span class="material-symbols-outlined text-[15px] animate-pulse">warning</span>
-                                <span>Plateau Detected! Tap to deload targets by 10%</span>
-                            </div>` : ''}
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-full bg-[#f3f3f3] border border-[#e2e2e2] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+                                ${getExerciseIconSvg(ex.exerciseName, ex.muscleGroup)}
+                            </div>
+                            <div>
+                                <span class="px-2.5 py-0.5 rounded-md bg-[#f3f3f3] text-[#5d5f5d] text-[11px] font-bold uppercase tracking-wider">${ex.muscleGroup}</span>
+                                <h3 class="font-['Plus_Jakarta_Sans'] text-xl font-bold text-black mt-0.5">${ex.exerciseName}</h3>
+                                ${ex.plateau ? `
+                                <div class="mt-1.5 flex items-center gap-2 p-1.5 px-2.5 rounded-lg bg-[#dc2626]/10 border border-[#dc2626]/20 text-[#dc2626] text-[11px] font-bold cursor-pointer hover:bg-[#dc2626]/15 active:scale-[0.98] transition-all w-fit" onclick="applyExerciseDeload(${exIdx})">
+                                    <span class="material-symbols-outlined text-[14px] animate-pulse">warning</span>
+                                    <span>Plateau Detected! Tap to deload targets by 10%</span>
+                                </div>` : ''}
+                            </div>
                         </div>
                         <div class="flex items-center gap-2">
                             <button class="w-8 h-8 rounded-full bg-[#f3f3f3] text-[#848484] hover:bg-red-50 hover:text-red-600 flex items-center justify-center transition-colors" onclick="removeExercise(${exIdx})" title="Remove Exercise">
