@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button onclick="toggleTheme()" class="p-2 text-[#5d5f5d] hover:text-black active:scale-[0.94] transition-colors" title="Toggle dark mode" aria-label="Toggle dark mode">
                     <span class="material-symbols-outlined theme-toggle-icon">${themeIcon}</span>
                 </button>
+                <a href="/settings.html" class="p-2 text-[#5d5f5d] hover:text-black active:scale-[0.94] transition-colors" title="Settings">
+                    <span class="material-symbols-outlined">settings</span>
+                </a>
                 <button onclick="logout()" class="p-2 text-[#5d5f5d] hover:text-black active:scale-[0.94] transition-colors" title="Logout">
                     <span class="material-symbols-outlined">logout</span>
                 </button>
@@ -76,6 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a href="/progress.html" class="flex items-center gap-4 px-4 py-3 rounded-full transition-colors duration-160 font-['Hanken_Grotesk'] text-[14px] font-semibold active:scale-[0.98] ${currentPage === 'progress.html' ? 'bg-black text-white shadow-sm' : 'text-[#5d5f5d] hover:text-black hover:bg-[#eeeeee]'}">
                         <span class="material-symbols-outlined ${currentPage === 'progress.html' ? '' : 'text-[#5d5f5d]'}">leaderboard</span>
                         <span>Progress</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings.html" class="flex items-center gap-4 px-4 py-3 rounded-full transition-colors duration-160 font-['Hanken_Grotesk'] text-[14px] font-semibold active:scale-[0.98] ${currentPage === 'settings.html' ? 'bg-black text-white shadow-sm' : 'text-[#5d5f5d] hover:text-black hover:bg-[#eeeeee]'}">
+                        <span class="material-symbols-outlined ${currentPage === 'settings.html' ? '' : 'text-[#5d5f5d]'}">settings</span>
+                        <span>Settings</span>
                     </a>
                 </li>
             </ul>

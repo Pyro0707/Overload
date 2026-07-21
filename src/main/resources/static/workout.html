@@ -182,7 +182,8 @@
         let timerInterval = null;
         let audioCtx = null; // reused across beeps — browsers cap concurrent AudioContexts
         let timerSeconds = 0;
-        let timerTotal = 90;
+        const preferredUnit = localStorage.getItem('preferredUnit') || 'kg';
+        let timerTotal = parseInt(localStorage.getItem('defaultRestTimer') || '180');
         let sessionTimerInterval = null;
         let sessionSeconds = 0;
         let coachMode = true;
@@ -387,7 +388,7 @@
                                     <span class="font-['Plus_Jakarta_Sans'] font-extrabold text-xs text-black">Progression Coach</span>
                                     <span class="text-[10px] bg-teal-100 text-teal-800 font-bold px-2 py-0.5 rounded-full">Target Today</span>
                                 </div>
-                                <p class="text-xs text-[#5d5f5d] mt-0.5">Last: <strong class="text-black">${lastW}kg × ${lastR} reps</strong> ➔ Rec: <strong class="text-teal-700 font-bold">${recW}kg × ${recR} reps</strong></p>
+                                <p class="text-xs text-[#5d5f5d] mt-0.5">Last: <strong class="text-black">${lastW}${preferredUnit} × ${lastR} reps</strong> ➔ Rec: <strong class="text-teal-700 font-bold">${recW}${preferredUnit} × ${recR} reps</strong></p>
                             </div>
                         </div>
                         <button class="bg-teal-600 text-white hover:bg-teal-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 self-end sm:self-center" onclick="applyRecommendation(${exIdx}, ${recW}, ${recR})">
@@ -431,7 +432,7 @@
                     <div class="flex flex-col gap-2">
                         <div class="grid grid-cols-12 gap-2 px-4 pb-1 border-b border-[#eeeeee] text-xs font-bold uppercase tracking-wider text-[#848484]">
                             <div class="col-span-1 text-center">Set</div>
-                            <div class="col-span-3 text-center">Weight (kg)</div>
+                            <div class="col-span-3 text-center">Weight (${preferredUnit})</div>
                             <div class="col-span-3 text-center">Reps</div>
                             <div class="col-span-3 text-center">RPE</div>
                             <div class="col-span-2 text-center">Done</div>
@@ -449,7 +450,7 @@
                             <div class="grid grid-cols-12 gap-2 px-4 py-2.5 rounded-xl items-center transition-colors ${set.logged ? 'bg-[#f3f3f3]/70 opacity-70' : 'bg-[#f9f9f9] border border-[#e2e2e2]'}" id="set-row-${exIdx}-${setIdx}">
                                 <div class="col-span-1 text-center font-bold text-xs ${set.logged ? 'text-[#848484]' : 'text-black'}">${setIdx + 1}</div>
                                 <div class="col-span-3 flex justify-center">
-                                    <input class="w-20 bg-white border border-[#e2e2e2] rounded-lg py-1.5 px-2 text-center text-sm font-bold text-black focus:ring-2 focus:ring-black focus:border-black transition-all ${set.logged ? 'bg-transparent border-transparent' : ''}" type="number" step="2.5" value="${set.weight}" placeholder="kg" oninput="updateSetLive(${exIdx}, ${setIdx}, 'weight', this.value)" ${set.logged ? 'disabled' : ''}>
+                                    <input class="w-20 bg-white border border-[#e2e2e2] rounded-lg py-1.5 px-2 text-center text-sm font-bold text-black focus:ring-2 focus:ring-black focus:border-black transition-all ${set.logged ? 'bg-transparent border-transparent' : ''}" type="number" step="2.5" value="${set.weight}" placeholder="${preferredUnit}" oninput="updateSetLive(${exIdx}, ${setIdx}, 'weight', this.value)" ${set.logged ? 'disabled' : ''}>
                                 </div>
                                 <div class="col-span-3 flex justify-center">
                                     <input class="w-20 bg-white border border-[#e2e2e2] rounded-lg py-1.5 px-2 text-center text-sm font-bold text-black focus:ring-2 focus:ring-black focus:border-black transition-all ${set.logged ? 'bg-transparent border-transparent' : ''}" type="number" value="${set.reps}" placeholder="reps" oninput="updateSetLive(${exIdx}, ${setIdx}, 'reps', this.value)" ${set.logged ? 'disabled' : ''}>
@@ -559,9 +560,9 @@
 
                 if (res.weightPr || res.repPr) {
                     const prType = res.weightPr ? 'Weight' : 'Rep';
-                    showToast(`🔥 ${prType} PR! ${ex.exerciseName}: ${set.weight}kg × ${set.reps} reps!`, 'pr');
+                    showToast(`🔥 ${prType} PR! ${ex.exerciseName}: ${set.weight}${preferredUnit} × ${set.reps} reps!`, 'pr');
                 } else if (is1RmPr) {
-                    showToast(`🎯 New est. 1RM PR! ${ex.exerciseName}: ${est1Rm.toFixed(1)} kg`, 'pr');
+                    showToast(`🎯 New est. 1RM PR! ${ex.exerciseName}: ${est1Rm.toFixed(1)} ${preferredUnit}`, 'pr');
                 } else {
                     showToast(`Set logged${set.rpe ? ` @RPE ${set.rpe}` : ''}!`, 'success');
                 }

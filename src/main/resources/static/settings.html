@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — Overload</title>
+    <meta name="description" content="Customize your Overload configuration and logging preferences.">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
+</head>
+<body class="bg-[#f9f9f9] text-[#1b1b1b] min-h-screen font-['Hanken_Grotesk'] overflow-x-hidden">
+    <!-- Main Content Canvas -->
+    <main class="w-full md:w-[calc(100%-16rem)] md:ml-64 p-5 md:p-10 lg:p-12 min-h-screen">
+        <div class="max-w-[768px] mx-auto flex flex-col gap-8">
+            <!-- Header Section -->
+            <header class="flex flex-col gap-1 animate-fade-in-up">
+                <span class="text-xs font-semibold uppercase tracking-wider text-[#0d9488]">System Settings</span>
+                <h1 class="font-['Plus_Jakarta_Sans'] text-3xl md:text-4xl font-extrabold text-black tracking-tight">Preferences & Config</h1>
+                <p class="font-medium text-sm text-[#5d5f5d]">Customize your workout tracking preferences and interface settings.</p>
+            </header>
+
+            <div class="bg-white rounded-3xl p-6 md:p-8 border border-[#e2e2e2] shadow-sm flex flex-col gap-6 animate-fade-in-up animation-delay-100">
+                <!-- Setting Option 1: Weight Unit -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#eeeeee]">
+                    <div>
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base text-black">Preferred Weight Unit</h3>
+                        <p class="text-xs text-[#5d5f5d] mt-0.5">Select the default weight metric for your workout logs.</p>
+                    </div>
+                    <div class="flex p-1 bg-[#f3f3f3] rounded-xl border border-[#eeeeee] self-start sm:self-center">
+                        <button type="button" id="unit-metric" class="py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm" onclick="setWeightUnit('kg')">Metric (kg)</button>
+                        <button type="button" id="unit-imperial" class="py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black" onclick="setWeightUnit('lbs')">Imperial (lbs)</button>
+                    </div>
+                </div>
+
+                <!-- Setting Option 2: Default Rest Timer -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#eeeeee]">
+                    <div>
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base text-black">Default Rest Timer</h3>
+                        <p class="text-xs text-[#5d5f5d] mt-0.5">Configure the automatic rest countdown trigger after logging a set.</p>
+                    </div>
+                    <div class="w-full sm:w-48">
+                        <select id="rest-timer-select" class="w-full bg-[#f3f3f3] border border-transparent rounded-xl py-2 px-3 text-xs font-bold text-black focus:ring-2 focus:ring-black cursor-pointer transition-all" onchange="setRestTimer(this.value)">
+                            <option value="60">60 seconds (1:00)</option>
+                            <option value="90">90 seconds (1:50)</option>
+                            <option value="120">120 seconds (2:00)</option>
+                            <option value="180">180 seconds (3:00)</option>
+                            <option value="300">300 seconds (5:00)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Setting Option 3: Theme Selector -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+                    <div>
+                        <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base text-black">Interface Theme Mode</h3>
+                        <p class="text-xs text-[#5d5f5d] mt-0.5">Toggle between dark mode and light mode interfaces.</p>
+                    </div>
+                    <div>
+                        <button onclick="toggleThemeAndRefresh()" class="flex items-center gap-1.5 px-4 py-2 bg-[#f3f3f3] hover:bg-[#e2e2e2] text-black font-bold rounded-xl text-xs transition-all shadow-sm">
+                            <span class="material-symbols-outlined theme-toggle-icon text-[16px]">dark_mode</span>
+                            <span>Toggle Theme</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+        requireAuth();
+
+        // Initialize display values from LocalStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUnit = localStorage.getItem('preferredUnit') || 'kg';
+            updateUnitButtons(currentUnit);
+
+            const defaultTimer = localStorage.getItem('defaultRestTimer') || '180';
+            document.getElementById('rest-timer-select').value = defaultTimer;
+        });
+
+        function setWeightUnit(unit) {
+            localStorage.setItem('preferredUnit', unit);
+            updateUnitButtons(unit);
+            showToast(`Preferred unit updated to ${unit.toUpperCase()}!`, 'success');
+        }
+
+        function updateUnitButtons(unit) {
+            const metricBtn = document.getElementById('unit-metric');
+            const imperialBtn = document.getElementById('unit-imperial');
+
+            if (unit === 'kg') {
+                metricBtn.className = 'py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm';
+                imperialBtn.className = 'py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black';
+            } else {
+                imperialBtn.className = 'py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm';
+                metricBtn.className = 'py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black';
+            }
+        }
+
+        function setRestTimer(seconds) {
+            localStorage.setItem('defaultRestTimer', seconds);
+            showToast(`Default rest timer updated to ${seconds}s!`, 'success');
+        }
+
+        function toggleThemeAndRefresh() {
+            toggleTheme();
+            const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.querySelectorAll('.theme-toggle-icon').forEach(el => {
+                el.textContent = dark ? 'light_mode' : 'dark_mode';
+            });
+        }
+    </script>
+</body>
+</html>
