@@ -321,60 +321,96 @@ input[type="number"]::-webkit-outer-spin-button {
     }
 }
 
-/* ── Dark Theme ─────────────────────────────────────────────
-   Everything above reads these vars, so overriding them themes the body,
-   tables, modals, toasts and skeletons for free. The page markup hardcodes
-   its colors as inline Tailwind values (bg-[#f3f3f3] etc.) instead of vars,
-   so those are remapped by class substring below — one rule per color also
-   covers its hover:/focus:/lg: variants.
-   Substring matching means a few hover-only surfaces show their
-   dark background at rest; swap the markup to bg-[var(--token)] if that
-   ever becomes visible enough to matter. */
+/* ── Dark Theme (Onyx / Zinc High-Contrast System) ──────────── */
 html[data-theme="dark"] {
-    --bg-primary: #0f1319;
-    --bg-surface: #171c24;
-    --bg-surface-low: #212732;
-    --bg-surface-high: #2b323d;
-    --text-primary: #e7eaee;
-    --text-secondary: #a4adb9;
-    --text-muted: #79828e;
-    --border: #2a303a;
-    --border-hover: #3a424e;
-    --shadow-ambient: 0 4px 20px rgba(0,0,0,0.35);
-    --shadow-hover: 0 8px 30px rgba(0,0,0,0.5);
+    --bg-primary: #09090b;
+    --bg-surface: #121215;
+    --bg-surface-low: #18181b;
+    --bg-surface-high: #27272a;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.16);
+    --shadow-ambient: 0 4px 20px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.7);
 }
 
-/* Components above that hardcode white */
-html[data-theme="dark"] .toast,
-html[data-theme="dark"] .modal { background: var(--bg-surface); }
+/* Base Body & Layout Defaults */
+html[data-theme="dark"] body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
 
-/* <option> doesn't inherit its parent's background, so a dark <select> can leave
-   its options light-text-on-white (invisible) in the native popup. */
+/* Precise Surface Mappings (Replaces buggy wildcards) */
+html[data-theme="dark"] .bg-white { background-color: var(--bg-surface) !important; }
+html[data-theme="dark"] .bg-\[\#f9f9f9\] { background-color: var(--bg-primary) !important; }
+html[data-theme="dark"] .bg-\[\#f3f3f3\] { background-color: var(--bg-surface-low) !important; }
+html[data-theme="dark"] .bg-\[\#f3f3f3\]\/70 { background-color: rgba(24, 24, 27, 0.7) !important; }
+html[data-theme="dark"] .bg-\[\#f9f9f9\]\/70 { background-color: rgba(18, 18, 21, 0.7) !important; }
+html[data-theme="dark"] .bg-\[\#e8e8e8\],
+html[data-theme="dark"] .bg-\[\#e2e2e2\] { background-color: var(--bg-surface-high) !important; }
+
+/* Precise Text Mappings */
+html[data-theme="dark"] .text-black { color: var(--text-primary) !important; }
+html[data-theme="dark"] .text-\[\#1b1b1b\] { color: var(--text-primary) !important; }
+html[data-theme="dark"] .text-\[\#5d5f5d\] { color: var(--text-secondary) !important; }
+html[data-theme="dark"] .text-\[\#848484\] { color: var(--text-muted) !important; }
+html[data-theme="dark"] .text-\[\#c6c6c6\] { color: #52525b !important; }
+html[data-theme="dark"] .hover\:text-black:hover { color: #ffffff !important; }
+
+/* Precise Border Mappings */
+html[data-theme="dark"] .border-\[\#e2e2e2\] { border-color: var(--border) !important; }
+html[data-theme="dark"] .border-\[\#eeeeee\] { border-color: rgba(255, 255, 255, 0.05) !important; }
+html[data-theme="dark"] .border-\[\#c6c6c6\] { border-color: var(--border-hover) !important; }
+
+/* Inputs, Selects & Textareas */
+html[data-theme="dark"] input:not([type="checkbox"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+    background-color: var(--bg-surface-low) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border) !important;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+    color: var(--text-muted) !important;
+}
+
 html[data-theme="dark"] select option {
-    background-color: var(--bg-surface);
-    color: var(--text-primary);
+    background-color: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
 }
 
-/* Inline Tailwind neutrals → dark equivalents */
-html[data-theme="dark"] [class*="bg-white"]       { background-color: var(--bg-surface) !important; }
-html[data-theme="dark"] [class*="bg-[#f9f9f9]"]   { background-color: var(--bg-primary) !important; }
-html[data-theme="dark"] [class*="bg-[#f3f3f3]"]   { background-color: var(--bg-surface-low) !important; }
-html[data-theme="dark"] [class*="bg-[#e8e8e8]"]   { background-color: var(--bg-surface-high) !important; }
-html[data-theme="dark"] [class*="bg-[#e2e2e2]"]   { background-color: var(--bg-surface-high) !important; }
+/* Primary Action Buttons (.bg-black) */
+html[data-theme="dark"] button.bg-black,
+html[data-theme="dark"] a.bg-black {
+    background-color: #f4f4f5 !important;
+    color: #09090b !important;
+}
 
-html[data-theme="dark"] [class*="text-black"]     { color: var(--text-primary) !important; }
-html[data-theme="dark"] [class*="text-[#1b1b1b]"] { color: var(--text-primary) !important; }
-html[data-theme="dark"] [class*="text-[#5d5f5d]"] { color: var(--text-secondary) !important; }
-html[data-theme="dark"] [class*="text-[#848484]"] { color: var(--text-muted) !important; }
-html[data-theme="dark"] [class*="text-[#c6c6c6]"] { color: #4a515c !important; }
+html[data-theme="dark"] button.bg-black *,
+html[data-theme="dark"] a.bg-black * {
+    color: #09090b !important;
+}
 
-html[data-theme="dark"] [class*="border-[#e2e2e2]"] { border-color: var(--border) !important; }
-html[data-theme="dark"] [class*="border-[#eeeeee]"] { border-color: #242a33 !important; }
-html[data-theme="dark"] [class*="border-[#c6c6c6]"] { border-color: var(--border-hover) !important; }
+html[data-theme="dark"] button.bg-black:hover,
+html[data-theme="dark"] a.bg-black:hover {
+    background-color: #ffffff !important;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15) !important;
+}
 
-/* Primary buttons are bg-black + text-white and would vanish on a dark page,
-   so flip them to a light surface with dark content. Exact class selector,
-   NOT substring: <body> carries selection:bg-black and must not be repainted. */
-html[data-theme="dark"] .bg-black { background-color: #eef1f5 !important; }
-html[data-theme="dark"] .bg-black,
-html[data-theme="dark"] .bg-black * { color: #14171c !important; }
+/* Modals, Toasts & Skeleton Loaders */
+html[data-theme="dark"] .toast,
+html[data-theme="dark"] .modal {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] .skeleton {
+    background: linear-gradient(90deg, #18181b 25%, #27272a 50%, #18181b 75%) !important;
+    background-size: 200% 100% !important;
+}
+
