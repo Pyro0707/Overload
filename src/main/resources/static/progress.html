@@ -33,23 +33,37 @@
             <!-- Main Progress Content Container -->
             <div id="progress-content" class="hidden flex flex-col gap-8 animate-fade-in-up animation-delay-100">
                 <!-- Chart Section -->
-                <section class="bg-white rounded-3xl p-6 md:p-8 border border-[#e2e2e2] shadow-sm flex flex-col gap-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#eeeeee]">
-                        <div>
-                            <span class="text-xs font-bold text-[#848484] uppercase tracking-wider">Performance Trajectory</span>
+                <section class="bg-white rounded-3xl p-6 md:p-8 border border-[#e2e2e2] shadow-sm flex flex-col gap-6 relative overflow-hidden">
+                    <div class="absolute -right-12 -top-12 w-56 h-56 bg-[#0d9488]/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#eeeeee] relative z-10">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-bold text-[#848484] uppercase tracking-wider">Performance Trajectory</span>
+                                <div id="chart-stat-badge" class="hidden items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#0d9488]/10 text-[#0d9488] text-xs font-bold">
+                                    <span class="material-symbols-outlined text-[15px]">trending_up</span>
+                                    <span id="chart-stat-text">—</span>
+                                </div>
+                            </div>
                             <h2 class="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold text-black" id="chart-title">Exercise Progress</h2>
                         </div>
 
                         <!-- Chart Tabs -->
                         <div class="flex p-1 bg-[#f3f3f3] rounded-xl border border-[#eeeeee] self-start sm:self-center">
-                            <button type="button" class="tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm" onclick="switchChart('weight', this)">Weight</button>
-                            <button type="button" class="tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black" onclick="switchChart('volume', this)">Volume</button>
-                            <button type="button" class="tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black" onclick="switchChart('maxReps', this)">Best Reps</button>
+                            <button type="button" class="tab-btn flex items-center gap-1.5 py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm" onclick="switchChart('weight', this)">
+                                <span class="material-symbols-outlined text-[15px]">fitness_center</span> Weight
+                            </button>
+                            <button type="button" class="tab-btn flex items-center gap-1.5 py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black" onclick="switchChart('volume', this)">
+                                <span class="material-symbols-outlined text-[15px]">equalizer</span> Volume
+                            </button>
+                            <button type="button" class="tab-btn flex items-center gap-1.5 py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black" onclick="switchChart('maxReps', this)">
+                                <span class="material-symbols-outlined text-[15px]">repeat</span> Best Reps
+                            </button>
                         </div>
                     </div>
 
                     <!-- Canvas -->
-                    <div class="relative h-[320px] w-full">
+                    <div class="relative h-[340px] w-full z-10">
                         <canvas id="progress-chart"></canvas>
                     </div>
                 </section>
@@ -173,9 +187,9 @@
         function switchChart(type, btn) {
             currentChartType = type;
             document.querySelectorAll('.tab-btn').forEach(b => {
-                b.className = 'tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black';
+                b.className = 'tab-btn flex items-center gap-1.5 py-2 px-4 rounded-lg text-xs font-bold transition-all text-[#5d5f5d] hover:text-black';
             });
-            if (btn) btn.className = 'tab-btn py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm';
+            if (btn) btn.className = 'tab-btn flex items-center gap-1.5 py-2 px-4 rounded-lg text-xs font-bold transition-all bg-black text-white shadow-sm';
             updateChart();
         }
 
@@ -217,6 +231,24 @@
             const tooltipBg = isDark ? '#18181b' : '#1b1b1b';
             const pointBorder = isDark ? '#121215' : '#ffffff';
 
+            const badgeEl = document.getElementById('chart-stat-badge');
+            const badgeText = document.getElementById('chart-stat-text');
+            if (historyData.length > 0 && badgeEl && badgeText) {
+                const firstVal = data[0] || 0;
+                const lastVal = data[data.length - 1] || 0;
+                const diff = (lastVal - firstVal).toFixed(1);
+                const unitSuffix = currentChartType === 'maxReps' ? 'reps' : preferredUnit;
+                const pct = firstVal > 0 ? Math.round(((lastVal - firstVal) / firstVal) * 100) : 0;
+                
+                badgeEl.classList.remove('hidden');
+                badgeEl.classList.add('flex');
+                if (diff >= 0) {
+                    badgeText.textContent = `Latest: ${lastVal} ${unitSuffix} (+${diff} / +${pct}%)`;
+                } else {
+                    badgeText.textContent = `Latest: ${lastVal} ${unitSuffix} (${diff} / ${pct}%)`;
+                }
+            }
+
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -233,7 +265,7 @@
                         pointBorderColor: pointBorder,
                         pointBorderWidth: 2,
                         pointRadius: 4,
-                        pointHoverRadius: 7,
+                        pointHoverRadius: 8,
                         pointHoverBackgroundColor: primaryColor,
                         pointHoverBorderColor: pointBorder,
                         pointHoverBorderWidth: 3
@@ -256,7 +288,13 @@
                             cornerRadius: 10,
                             displayColors: false,
                             borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                            borderWidth: 1
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const unitSuffix = currentChartType === 'maxReps' ? 'reps' : preferredUnit;
+                                    return ` ${context.dataset.label}: ${context.parsed.y} ${unitSuffix}`;
+                                }
+                            }
                         }
                     },
                     scales: {
@@ -265,7 +303,7 @@
                             ticks: { font: { family: 'Hanken Grotesk', size: 11, weight: '600' }, color: tickColor }
                         },
                         y: {
-                            grid: { color: gridColor },
+                            grid: { color: gridColor, borderDash: [4, 4] },
                             ticks: { font: { family: 'Hanken Grotesk', size: 11, weight: '600' }, color: tickColor },
                             beginAtZero: false
                         }
