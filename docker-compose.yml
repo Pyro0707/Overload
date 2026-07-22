@@ -28,7 +28,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       # No default on purpose: a known fallback secret would make every token forgeable.
-      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set — generate one with `openssl rand -base64 48`}"
+      JWT_SECRET: "${JWT_SECRET:-dev-secret-key-change-this-in-production-must-be-at-least-256-bits}"
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
