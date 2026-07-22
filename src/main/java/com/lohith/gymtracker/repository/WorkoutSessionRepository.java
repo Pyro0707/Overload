@@ -1,4 +1,4 @@
-whpackage com.lohith.gymtracker.repository;
+package com.lohith.gymtracker.repository;
 
 import com.lohith.gymtracker.model.WorkoutSession;
 import org.springframework.data.jpa.repository.JpaRepository;
