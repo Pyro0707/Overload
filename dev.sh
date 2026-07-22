@@ -8,13 +8,12 @@ echo "=========================================="
 echo "         OVERLOAD DEV LAUNCHER            "
 echo "=========================================="
 
-# 1. Load environment variables from .env
+# 1. Load environment variables from .env if present
 if [ -f .env ]; then
     echo "✔ Loading .env variables..."
     export $(grep -v '^#' .env | xargs)
 else
-    echo "✖ .env file not found! Please create one from .env.example or template."
-    exit 1
+    echo "ℹ No .env file found — using built-in development defaults."
 fi
 
 # 2. Ensure Docker and overload-db are running
